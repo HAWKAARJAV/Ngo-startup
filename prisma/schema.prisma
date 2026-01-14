@@ -1,0 +1,112 @@
+generator client {
+  provider   = "prisma-client-js"
+  engineType = "library"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id               String     @id @default(uuid())
+  email            String     @unique
+  name             String?
+  role             Role       @default(DONOR)
+  createdAt        DateTime   @default(now())
+  corporateProfile Corporate?
+  ngoProfile       NGO?
+}
+
+model NGO {
+  id             String          @id @default(uuid())
+  userId         String          @unique
+  orgName        String
+  registrationNo String?
+  city           String
+  state          String
+  mission        String?
+  is12AVerified  Boolean         @default(false)
+  is80GVerified  Boolean         @default(false)
+  fcraStatus     Boolean         @default(false)
+  trustScore     Int             @default(0)
+  createdAt      DateTime        @default(now())
+  documents      ComplianceDoc[]
+  user           User            @relation(fields: [userId], references: [id])
+  projects       Project[]
+}
+
+model Corporate {
+  id           String     @id @default(uuid())
+  userId       String     @unique
+  companyName  String
+  industry     String
+  csrBudget    Float
+  mandateAreas String
+  user         User       @relation(fields: [userId], references: [id])
+  donations    Donation[]
+}
+
+model Project {
+  id           String     @id @default(uuid())
+  ngoId        String
+  title        String
+  description  String
+  targetAmount Float
+  raisedAmount Float      @default(0)
+  location     String
+  sector       String
+  status       String
+  createdAt    DateTime   @default(now())
+  donations    Donation[]
+  ngo          NGO        @relation(fields: [ngoId], references: [id])
+  tranches     Tranche[]
+}
+
+model Tranche {
+  id              String        @id @default(uuid())
+  projectId       String
+  amount          Float
+  status          TrancheStatus @default(LOCKED)
+  unlockCondition String
+  proofDocUrl     String?
+  project         Project       @relation(fields: [projectId], references: [id])
+}
+
+model Donation {
+  id          String    @id @default(uuid())
+  corporateId String
+  projectId   String
+  amount      Float
+  date        DateTime  @default(now())
+  corporate   Corporate @relation(fields: [corporateId], references: [id])
+  project     Project   @relation(fields: [projectId], references: [id])
+}
+
+model ComplianceDoc {
+  id      String             @id @default(uuid())
+  ngoId   String
+  docType String
+  url     String
+  status  VerificationStatus @default(PENDING)
+  ngo     NGO                @relation(fields: [ngoId], references: [id])
+}
+
+enum Role {
+  ADMIN
+  NGO
+  CORPORATE
+  DONOR
+}
+
+enum VerificationStatus {
+  PENDING
+  VERIFIED
+  REJECTED
+}
+
+enum TrancheStatus {
+  LOCKED
+  UNLOCKED
+  DISBURSED
+}
