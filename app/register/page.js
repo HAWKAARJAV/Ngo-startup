@@ -29,9 +29,11 @@ export default function RegisterPage() {
                         </p>
                     </CardContent>
                     <CardFooter className="justify-center pb-8">
-                        <Button className="bg-slate-900 hover:bg-black group-hover:px-8 transition-all">
-                            Create Corporate Account <ArrowRight className="ml-2 h-4 w-4" />
-                        </Button>
+                        <Link href="/register/corporate">
+                            <Button className="bg-slate-900 hover:bg-black group-hover:px-8 transition-all w-full">
+                                Create Corporate Account <ArrowRight className="ml-2 h-4 w-4" />
+                            </Button>
+                        </Link>
                     </CardFooter>
                 </Card>
 

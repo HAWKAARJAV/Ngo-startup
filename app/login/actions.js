@@ -21,7 +21,8 @@ export async function login(formData) {
     // In a real app, this would be a signed JWT or session ID.
     const sessionData = JSON.stringify({ id: user.id, email: user.email, role: user.role })
 
-    cookies().set("token", sessionData, {
+    const cookieStore = await cookies()
+    cookieStore.set("token", sessionData, {
         httpOnly: true,
         secure: process.env.NODE_ENV === "production",
         maxAge: 60 * 60 * 24 * 7, // 1 week
@@ -33,6 +34,7 @@ export async function login(formData) {
 }
 
 export async function logout() {
-    cookies().delete("token")
+    const cookieStore = await cookies()
+    cookieStore.delete("token")
     redirect("/login")
 }

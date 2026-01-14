@@ -23,9 +23,22 @@ model NGO {
   userId         String          @unique
   orgName        String
   registrationNo String?
+  ngoType        NgoType         @default(TRUST)
   city           String
   state          String
+  pincode        String?
+  address        String?
   mission        String?
+  // Contact Person
+  contactPerson  String?
+  designation    String?
+  mobile         String?
+  website        String?
+  // Legal & Compliance
+  pan            String?
+  darpanId       String?
+  csr1Number     String?
+  // Verifications
   is12AVerified  Boolean         @default(false)
   is80GVerified  Boolean         @default(false)
   fcraStatus     Boolean         @default(false)
@@ -34,6 +47,13 @@ model NGO {
   documents      ComplianceDoc[]
   user           User            @relation(fields: [userId], references: [id])
   projects       Project[]
+}
+
+enum NgoType {
+  TRUST
+  SOCIETY
+  SECTION_8
+  OTHER
 }
 
 model Corporate {
