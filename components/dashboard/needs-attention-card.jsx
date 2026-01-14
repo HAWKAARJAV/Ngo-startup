@@ -7,6 +7,7 @@ import { CheckCircle2 } from "lucide-react"
 import confetti from "canvas-confetti"
 import { useState } from "react"
 import { approveTranche } from "@/app/actions/project-actions"
+import Link from "next/link"
 
 export default function NeedsAttentionCard({ initialProjects }) {
     const [projects, setProjects] = useState(initialProjects)
@@ -70,15 +71,15 @@ export default function NeedsAttentionCard({ initialProjects }) {
                                             <CheckCircle2 size={16} /> Disbursed
                                         </div>
                                     ) : (
-                                        <Button
-                                            size="sm"
-                                            variant="link"
-                                            className="text-primary h-auto p-0"
-                                            disabled={loadingId === project.id}
-                                            onClick={() => handleVerify(project.id)}
-                                        >
-                                            {loadingId === project.id ? "Verifying..." : "Verify Docs →"}
-                                        </Button>
+                                        <Link href={`/dashboard/projects/${project.id}`}>
+                                            <Button
+                                                size="sm"
+                                                variant="link"
+                                                className="text-primary h-auto p-0"
+                                            >
+                                                Verify Docs →
+                                            </Button>
+                                        </Link>
                                     )}
                                 </div>
                             </div>

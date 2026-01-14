@@ -7,6 +7,7 @@ import prisma from "@/lib/prisma";
 import NeedsAttentionCard from "@/components/dashboard/needs-attention-card";
 import ImpactMap from "@/components/dashboard/impact-map";
 import ImpactReportGenerator from "@/components/dashboard/impact-report-generator";
+import EcosystemFeed from "@/components/dashboard/ecosystem-feed";
 
 export const dynamic = 'force-dynamic';
 
@@ -90,6 +91,9 @@ export default async function DashboardPage() {
 
                 {/* Right: Map & AI */}
                 <div className="lg:col-span-1 space-y-6">
+                    {/* Live Ecosystem Feed */}
+                    <EcosystemFeed />
+
                     {/* Live Impact Map */}
                     <ImpactMap />
 

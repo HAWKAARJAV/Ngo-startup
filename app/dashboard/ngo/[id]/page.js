@@ -8,6 +8,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Building2, MapPin, Globe, Mail, Phone, ShieldCheck, FileText, CheckCircle2, AlertCircle } from "lucide-react";
 import Link from "next/link";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import TrustScoreBreakdown from "@/components/trust-score-breakdown";
 
 export const dynamic = 'force-dynamic';
 
@@ -79,17 +80,15 @@ export default async function NGOProfilePage({ params }) {
                 {/* LEFT COLUMN: ABOUT & PROJECTS */}
                 <div className="lg:col-span-2 space-y-6">
 
+                    {/* Trust Score Breakdown */}
+                    <TrustScoreBreakdown
+                        score={ngo.trustScore}
+                        breakdownJson={ngo.trustBreakdown}
+                        expenseRatio={ngo.expenseRatio}
+                    />
+
                     {/* Stats Row */}
                     <div className="grid grid-cols-3 gap-4">
-                        <Card>
-                            <CardHeader className="pb-2"><CardTitle className="text-sm font-medium text-slate-500">Trust Score</CardTitle></CardHeader>
-                            <CardContent>
-                                <div className="text-2xl font-bold flex items-baseline gap-1">
-                                    {ngo.trustScore}/100
-                                </div>
-                                <Progress value={ngo.trustScore} className="h-2 mt-2" />
-                            </CardContent>
-                        </Card>
                         <Card>
                             <CardHeader className="pb-2"><CardTitle className="text-sm font-medium text-slate-500">Active Projects</CardTitle></CardHeader>
                             <CardContent><div className="text-2xl font-bold">{ngo.projects.length}</div></CardContent>
@@ -97,6 +96,10 @@ export default async function NGOProfilePage({ params }) {
                         <Card>
                             <CardHeader className="pb-2"><CardTitle className="text-sm font-medium text-slate-500">Years Active</CardTitle></CardHeader>
                             <CardContent><div className="text-2xl font-bold">12+</div></CardContent>
+                        </Card>
+                        <Card>
+                            <CardHeader className="pb-2"><CardTitle className="text-sm font-medium text-slate-500">Beneficiaries</CardTitle></CardHeader>
+                            <CardContent><div className="text-2xl font-bold">5k+</div></CardContent>
                         </Card>
                     </div>
 

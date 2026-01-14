@@ -144,11 +144,43 @@ async function main() {
 
     const allNGOs = [...champions]
 
+    // Helper to generate a realistic project based on area
+    const getProjectForNGO = (ngoName, area) => {
+        const sectors = [
+            { title: "Vocational Training", desc: "Skill development for youth", type: "Education", amt: 1200000 },
+            { title: "Community Health Camp", desc: "Free medical checkups for Slum dwellers", type: "Healthcare", amt: 500000 },
+            { title: "Safe Drinking Water", desc: "Installing RO plants in community centers", type: "Healthcare", amt: 800000 },
+            { title: "Women's Self Help Group", desc: "Micro-finance and livelihood training", type: "Livelihood", amt: 1500000 },
+            { title: "Digital Literacy Drive", desc: "Computer education for underprivileged kids", type: "Education", amt: 1000000 },
+            { title: "Winter Relief Distribution", desc: "Blanket and clothing distribution", type: "Disaster Relief", amt: 400000 }
+        ];
+
+        // Pick random sector
+        const sector = sectors[Math.floor(Math.random() * sectors.length)];
+
+        return {
+            title: `${sector.title} in ${area}`,
+            description: `${sector.desc} organized by ${ngoName}. Targeting 500+ beneficiaries in the ${area} locality.`,
+            targetAmount: sector.amt,
+            raisedAmount: Math.floor(Math.random() * (sector.amt * 0.8)), // Random raised amount
+            location: `${area}, Delhi`,
+            sector: sector.type,
+            status: 'ACTIVE',
+        };
+    };
+
     // Convert DMC List to Full Objects
     dmcList.forEach(ngo => {
         // Generate synthetic email if missing
         const sanitizedName = ngo.name.toLowerCase().replace(/[^a-z0-9]/g, '')
         const email = ngo.email || `contact@${sanitizedName}.org.in`
+
+        // Generate 1 or 2 random projects per NGO
+        const numProjects = Math.random() > 0.6 ? 2 : 1;
+        const projects = [];
+        for (let i = 0; i < numProjects; i++) {
+            projects.push(getProjectForNGO(ngo.name, ngo.area));
+        }
 
         allNGOs.push({
             email: email,
@@ -162,7 +194,7 @@ async function main() {
             is80GVerified: false,
             fcraStatus: false,
             trustScore: 80 + Math.floor(Math.random() * 10), // Random score 80-90 for these valid NGOs
-            projects: [] // No active projects by default for bulk entries
+            projects: projects
         })
     })
 
@@ -188,8 +220,20 @@ async function main() {
                             is80GVerified: data.is80GVerified,
                             fcraStatus: data.fcraStatus,
                             trustScore: data.trustScore,
+                            trustBreakdown: data.trustBreakdown,
+                            expenseRatio: data.expenseRatio,
+                            csr1Number: data.csr1Number,
                             projects: {
-                                create: data.projects
+                                create: data.projects.map(p => ({
+                                    ...p,
+                                    tranches: {
+                                        create: [
+                                            { amount: p.targetAmount * 0.3, unlockCondition: "Project Kickoff", status: "DISBURSED", releaseRequested: false },
+                                            { amount: p.targetAmount * 0.3, unlockCondition: "Mid-Term Assessment", status: "LOCKED", releaseRequested: true, proofDocUrl: "https://example.com/uc.pdf" },
+                                            { amount: p.targetAmount * 0.4, unlockCondition: "Final Impact Report", status: "LOCKED", releaseRequested: false }
+                                        ]
+                                    }
+                                }))
                             }
                         }
                     }

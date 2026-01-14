@@ -22,14 +22,15 @@ export default function LandingPage() {
             <Link href="#pricing" className="text-sm font-medium text-slate-600 hover:text-slate-900 transition-colors">Pricing</Link>
             <Link href="#testimonials" className="text-sm font-medium text-slate-600 hover:text-slate-900 transition-colors">Success Stories</Link>
           </div>
-          <div className="flex gap-4">
-            <Link href="/login">
-              <Button variant="ghost">Log in</Button>
+          <nav className="hidden md:flex gap-6">
+            <Link href="/login" className="text-sm font-medium hover:text-slate-900">Sign In</Link>
+            <Link href="/stories" className="text-sm font-medium hover:text-slate-900">Success Stories</Link>
+            <Link href="/register">
+              <Button size="sm" className="bg-slate-900 text-white hover:bg-slate-800">
+                Get Started
+              </Button>
             </Link>
-            <Link href="/register/ngo">
-              <Button className="bg-blue-600 hover:bg-blue-700">Get Verified</Button>
-            </Link>
-          </div>
+          </nav>
         </div>
       </nav>
 
@@ -48,7 +49,7 @@ export default function LandingPage() {
             We verify NGOs, track disbursals in real-time, and measure impact automatically.
           </p>
           <p className="text-lg text-slate-500 mb-10 max-w-2xl mx-auto">
-            Move beyond <span className="line-through text-slate-400">"Good Faith"</span> to <span className="font-bold text-green-600">"Good Governance"</span>. 
+            Move beyond <span className="line-through text-slate-400">"Good Faith"</span> to <span className="font-bold text-green-600">"Good Governance"</span>.
             Ensure 100% MCA compliance while maximizing social impact.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center mb-12">
@@ -112,7 +113,7 @@ export default function LandingPage() {
             <h2 className="text-4xl lg:text-5xl font-bold text-slate-900 mb-4">Everything You Need for Transparent CSR</h2>
             <p className="text-xl text-slate-600">Automated compliance, smart funding, and real-time impact tracking — all in one platform.</p>
           </div>
-          
+
           <div className="grid md:grid-cols-3 gap-8 mb-12">
             <Card className="border-slate-200 shadow-sm hover:shadow-lg transition-shadow duration-300">
               <CardHeader>
@@ -123,7 +124,7 @@ export default function LandingPage() {
               </CardHeader>
               <CardContent>
                 <p className="text-slate-600 leading-relaxed mb-4">
-                  We ping the MCA and Income Tax databases in real-time every 48 hours. 
+                  We ping the MCA and Income Tax databases in real-time every 48 hours.
                   If an NGO loses 12A status, we flag it instantly and freeze disbursals.
                 </p>
                 <ul className="space-y-2 text-sm text-slate-600">
@@ -263,7 +264,7 @@ export default function LandingPage() {
           <div className="grid md:grid-cols-3 gap-12 relative">
             {/* Connection Lines */}
             <div className="hidden md:block absolute top-1/4 left-0 right-0 h-0.5 bg-gradient-to-r from-blue-200 via-blue-400 to-blue-200 -z-10"></div>
-            
+
             <div className="relative">
               <div className="bg-blue-600 text-white rounded-full h-16 w-16 flex items-center justify-center text-2xl font-bold mb-6 mx-auto shadow-lg">1</div>
               <div className="text-center">
