@@ -5,8 +5,10 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import SmartTrancheList from "@/components/smart-tranche-list";
+import ComplianceDashboard from "@/components/compliance/compliance-dashboard";
 import { ArrowLeft, Building2, MapPin, Wallet } from "lucide-react";
 import Link from "next/link";
+import { getProjectComplianceDocs } from "@/app/actions/compliance-actions";
 
 export const dynamic = 'force-dynamic';
 
@@ -25,8 +27,13 @@ export default async function ProjectDetailsPage({ params }) {
 
     if (!project) notFound();
 
+    // Fetch Compliance Docs
+    const complianceRes = await getProjectComplianceDocs(id);
+    const complianceDocs = complianceRes.success ? complianceRes.data : [];
+
     // Mocking the "Corporate View" since we are the funder
     const isCorporate = true;
+    const isNgo = true; // Enabled both for demo purposes so user can test both flows
 
     const percentFunded = (project.raisedAmount / project.targetAmount) * 100;
 
@@ -95,26 +102,17 @@ export default async function ProjectDetailsPage({ params }) {
                         </CardContent>
                     </Card>
 
-                    <Card className="border-blue-100 shadow-md">
-                        <CardHeader className="bg-blue-50/50 border-b border-blue-50 pb-4">
-                            <CardTitle className="flex items-center gap-2 text-blue-900">
-                                <Wallet className="h-5 w-5" /> Escrow Smart Tranches
-                            </CardTitle>
-                            <CardDescription>
-                                Funds are locked. Review 'Proof of Work' to unlock the next tranche.
-                            </CardDescription>
-                        </CardHeader>
-                        <CardContent className="pt-6">
-                            {project.tranches.length > 0 ? (
-                                <SmartTrancheList tranches={project.tranches} isCorporate={isCorporate} />
-                            ) : (
-                                <div className="text-center py-6 text-slate-500">
-                                    No tranches configured.
-                                    {/* Link to create tranches would go here */}
-                                </div>
-                            )}
-                        </CardContent>
-                    </Card>
+                    {/* NEW: Compliance Dashboard */}
+                    <div id="compliance-section">
+                        <ComplianceDashboard
+                            projectId={id}
+                            projectDocs={complianceDocs}
+                            isCorporate={isCorporate}
+                            isNgo={isNgo}
+                        />
+                    </div>
+
+
                 </div>
 
                 {/* Right: NGO Context */}

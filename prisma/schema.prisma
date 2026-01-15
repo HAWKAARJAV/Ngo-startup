@@ -108,6 +108,7 @@ model Project {
   donations    Donation[]
   ngo          NGO        @relation(fields: [ngoId], references: [id])
   tranches     Tranche[]
+  complianceDocs ProjectComplianceDoc[]
 }
 
 model Tranche {
@@ -162,4 +163,26 @@ enum TrancheStatus {
   LOCKED
   UNLOCKED
   DISBURSED
+}
+
+enum ComplianceStatus {
+  PENDING
+  SUBMITTED
+  VERIFIED
+  APPROVED
+  REJECTED
+}
+
+model ProjectComplianceDoc {
+  id          String           @id @default(uuid())
+  projectId   String
+  category    String           // A, B, C, D, E, F
+  docName     String           // Specific document name
+  url         String?          
+  status      ComplianceStatus @default(PENDING)
+  lastUpdated DateTime         @updatedAt
+  verifiedBy  String?          // User ID of verifier
+  remarks     String?
+
+  project     Project          @relation(fields: [projectId], references: [id])
 }
