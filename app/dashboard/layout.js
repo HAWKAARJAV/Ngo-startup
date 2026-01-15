@@ -25,6 +25,8 @@ import {
 import { cn } from "@/lib/utils";
 import AIChatbotWidget from "@/components/ai-chatbot";
 
+import { logout } from "@/app/login/actions";
+
 const NAV_ITEMS = [
     { label: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
     { label: "Find NGOs", href: "/dashboard/search", icon: Search },
@@ -39,6 +41,10 @@ const NAV_ITEMS = [
 export default function DashboardLayout({ children }) {
     const [isSidebarOpen, setIsSidebarOpen] = useState(true);
     const pathname = usePathname();
+
+    const handleLogout = async () => {
+        await logout();
+    };
 
     return (
         <div className="min-h-screen bg-slate-50 flex font-sans text-slate-900">
@@ -93,6 +99,7 @@ export default function DashboardLayout({ children }) {
                             "w-full flex items-center gap-3 text-red-400 hover:text-red-300 hover:bg-red-400/10 justify-start",
                             !isSidebarOpen && "justify-center px-0"
                         )}
+                        onClick={handleLogout}
                     >
                         <LogOut size={20} />
                         {isSidebarOpen && <span>Logout</span>}
