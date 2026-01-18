@@ -6,13 +6,14 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { CheckCircle2, Clock, Eye, FileText, Upload, AlertCircle, XCircle } from "lucide-react";
+import { CheckCircle2, Clock, Eye, FileText, Upload, AlertCircle, XCircle, BellRing } from "lucide-react";
 import { useState } from "react";
 import { uploadComplianceDoc, verifyComplianceDoc } from "@/app/actions/compliance-actions";
 import { useToast } from "@/components/ui/use-toast";
 import { Loader2 } from "lucide-react";
+import RequestDocDialog from "./request-doc-dialog";
 
-export default function DocRow({ projectId, category, docName, docData, isCorporate, isNgo }) {
+export default function DocRow({ projectId, category, categoryTitle, docName, docData, isCorporate, isNgo }) {
     const [isUploading, setIsUploading] = useState(false);
     const [uploadUrl, setUploadUrl] = useState("");
     const [isVerifying, setIsVerifying] = useState(false);
@@ -24,6 +25,8 @@ export default function DocRow({ projectId, category, docName, docData, isCorpor
 
     const status = docData?.status || 'PENDING';
 
+    // ... (handlers remain same)
+
     const handleUpload = async () => {
         if (!uploadUrl) {
             toast({
@@ -34,7 +37,7 @@ export default function DocRow({ projectId, category, docName, docData, isCorpor
             return;
         }
         setIsUploading(true);
-        // Mock upload - in real app, this would handle file upload to S3/Blob
+        // Mock upload
         const res = await uploadComplianceDoc(projectId, category, docName, uploadUrl);
         setIsUploading(false);
         if (res.success) {
@@ -54,7 +57,6 @@ export default function DocRow({ projectId, category, docName, docData, isCorpor
 
     const handleVerify = async (newStatus) => {
         setIsVerifying(true);
-        // Mock User ID for corporate verifier
         const res = await verifyComplianceDoc(docData.id, newStatus, "corporate-user-id", remarks);
         setIsVerifying(false);
         if (res.success) {
@@ -113,6 +115,22 @@ export default function DocRow({ projectId, category, docName, docData, isCorpor
                 {getStatusBadge(status)}
 
                 <div className="flex items-center gap-2">
+                    {/* Corporate Request Action (Demand) */}
+                    {isCorporate && (status === 'PENDING' || status === 'REJECTED') && (
+                        <RequestDocDialog
+                            fixedMode={true}
+                            defaultCategory={category}
+                            defaultDoc={docName}
+                            categoryTitle={categoryTitle}
+                            trigger={
+                                <Button size="sm" variant="ghost" className="text-amber-600 hover:text-amber-700 hover:bg-amber-50 gap-1 h-8 px-2">
+                                    <BellRing className="h-4 w-4" />
+                                    <span className="hidden sm:inline">Request</span>
+                                </Button>
+                            }
+                        />
+                    )}
+
                     {/* View/Action Buttons */}
                     {status !== 'PENDING' && (
                         <Button variant="ghost" size="icon" asChild>

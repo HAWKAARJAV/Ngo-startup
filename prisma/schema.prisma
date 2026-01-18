@@ -4,15 +4,15 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+  provider = "sqlite"
+  url      = "file:./dev.db"
 }
 
 model User {
   id               String     @id @default(uuid())
   email            String     @unique
   name             String?
-  role             Role       @default(DONOR)
+  role             String     @default("DONOR") // Enum: Role
   createdAt        DateTime   @default(now())
   corporateProfile Corporate?
   ngoProfile       NGO?
@@ -23,7 +23,7 @@ model NGO {
   userId         String          @unique
   orgName        String
   registrationNo String?
-  ngoType        NgoType         @default(TRUST)
+  ngoType        String          @default("TRUST") // Enum: NgoType
   city           String
   state          String
   pincode        String?
@@ -57,13 +57,6 @@ model NGO {
   documents      ComplianceDoc[]
   user           User            @relation(fields: [userId], references: [id])
   projects       Project[]
-}
-
-enum NgoType {
-  TRUST
-  SOCIETY
-  SECTION_8
-  OTHER
 }
 
 model Corporate {
@@ -115,7 +108,7 @@ model Tranche {
   id              String        @id @default(uuid())
   projectId       String
   amount          Float
-  status          TrancheStatus @default(LOCKED)
+  status          String        @default("LOCKED") // Enum: TrancheStatus
   unlockCondition String
   
   // Escrow & Verification Logic
@@ -142,35 +135,8 @@ model ComplianceDoc {
   ngoId   String
   docType String
   url     String
-  status  VerificationStatus @default(PENDING)
+  status  String             @default("PENDING") // Enum: VerificationStatus
   ngo     NGO                @relation(fields: [ngoId], references: [id])
-}
-
-enum Role {
-  ADMIN
-  NGO
-  CORPORATE
-  DONOR
-}
-
-enum VerificationStatus {
-  PENDING
-  VERIFIED
-  REJECTED
-}
-
-enum TrancheStatus {
-  LOCKED
-  UNLOCKED
-  DISBURSED
-}
-
-enum ComplianceStatus {
-  PENDING
-  SUBMITTED
-  VERIFIED
-  APPROVED
-  REJECTED
 }
 
 model ProjectComplianceDoc {
@@ -179,7 +145,7 @@ model ProjectComplianceDoc {
   category    String           // A, B, C, D, E, F
   docName     String           // Specific document name
   url         String?          
-  status      ComplianceStatus @default(PENDING)
+  status      String           @default("PENDING") // Enum: ComplianceStatus
   lastUpdated DateTime         @updatedAt
   verifiedBy  String?          // User ID of verifier
   remarks     String?

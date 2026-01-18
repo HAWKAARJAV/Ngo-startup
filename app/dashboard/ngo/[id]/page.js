@@ -2,17 +2,18 @@ import { notFound } from "next/navigation";
 import prisma from "@/lib/prisma";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Building2, MapPin, Globe, Mail, Phone, ShieldCheck, FileText, CheckCircle2, AlertCircle } from "lucide-react";
+import { Building2, MapPin, Globe, Mail, Phone, ShieldCheck, FileText, CheckCircle2, AlertCircle, Tag, User, Calendar, MessageCircle } from "lucide-react";
 import Link from "next/link";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import TrustScoreBreakdown from "@/components/trust-score-breakdown";
 
 export const dynamic = 'force-dynamic';
 
-export default async function NGOProfilePage({ params }) {
+export default async function NGOProfilePage(props) {
+    const params = await props.params;
     const { id } = params;
 
     const ngo = await prisma.nGO.findUnique({
@@ -31,6 +32,11 @@ export default async function NGOProfilePage({ params }) {
     const initials = ngo.orgName.substring(0, 2).toUpperCase();
     const isVerified = ngo.is12AVerified && ngo.is80GVerified;
 
+    // Derived/Mock Data for UI Requirements
+    const targetAudience = ["Children", "Women", "Economically Weaker Sections"];
+    const recentProjects = ngo.projects; // Keeping all as recent/active
+    const upcomingProjects = []; // Mock empty for now
+
     return (
         <div className="space-y-6">
             <Link href="/dashboard/search" className="text-sm text-slate-500 hover:text-blue-600 flex items-center gap-1 mb-4">
@@ -45,31 +51,40 @@ export default async function NGOProfilePage({ params }) {
                         <AvatarFallback className="rounded-xl text-xl bg-slate-100">{initials}</AvatarFallback>
                     </Avatar>
 
-                    <div className="flex-1 space-y-2">
+                    <div className="flex-1 space-y-4">
                         <div className="flex justify-between items-start">
                             <div>
                                 <h1 className="text-3xl font-bold text-slate-900 flex items-center gap-2">
                                     {ngo.orgName}
                                     {isVerified && <CheckCircle2 className="text-blue-500 h-6 w-6" />}
                                 </h1>
-                                <div className="flex items-center gap-4 text-slate-500 mt-1">
-                                    <span className="flex items-center gap-1"><MapPin size={16} /> {ngo.city}, {ngo.state}</span>
-                                    {ngo.website && <span className="flex items-center gap-1"><Globe size={16} /> {ngo.website}</span>}
-                                    <span className="flex items-center gap-1"><Building2 size={16} /> {ngo.ngoType || 'TRUST'}</span>
-                                </div>
+                                <p className="text-slate-600 mt-2 text-lg leading-relaxed">
+                                    {ngo.mission || "Mission statement not provided."}
+                                </p>
                             </div>
                             <Button className="bg-slate-900 border-none">Donate Now</Button>
                         </div>
 
-                        <p className="text-slate-600 max-w-3xl pt-2">
-                            {ngo.mission || "Mission statement not provided."}
-                        </p>
+                        {/* TAGS SECTION: Location, Aim, Target Audience */}
+                        <div className="flex flex-wrap gap-3 mt-4">
+                            <Badge variant="secondary" className="px-3 py-1 text-sm flex items-center gap-1">
+                                <MapPin className="h-3 w-3" /> {ngo.city}, {ngo.state}
+                            </Badge>
+                            <Badge variant="secondary" className="px-3 py-1 text-sm flex items-center gap-1">
+                                <Building2 className="h-3 w-3" /> {ngo.ngoType || 'TRUST'}
+                            </Badge>
+                            {/* Mocking Sector as Aim based on first project or NGO type */}
+                            <Badge variant="secondary" className="px-3 py-1 text-sm flex items-center gap-1">
+                                <Tag className="h-3 w-3" /> {ngo.projects[0]?.sector || "Social Welfare"}
+                            </Badge>
 
-                        <div className="flex gap-2 pt-2">
-                            {ngo.is12AVerified && <Badge variant="outline" className="border-green-200 bg-green-50 text-green-700">12A Registered</Badge>}
-                            {ngo.is80GVerified && <Badge variant="outline" className="border-blue-200 bg-blue-50 text-blue-700">80G Certified</Badge>}
-                            {ngo.fcraStatus && <Badge variant="outline" className="border-amber-200 bg-amber-50 text-amber-700">FCRA Compliant</Badge>}
+                            {targetAudience.map(aud => (
+                                <Badge key={aud} variant="outline" className="px-3 py-1 text-sm border-slate-300 text-slate-600 flex items-center gap-1">
+                                    <User className="h-3 w-3" /> {aud}
+                                </Badge>
+                            ))}
                         </div>
+
                     </div>
                 </div>
             </div>
@@ -77,155 +92,165 @@ export default async function NGOProfilePage({ params }) {
             {/* Main Content Info */}
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
 
-                {/* LEFT COLUMN: ABOUT & PROJECTS */}
-                <div className="lg:col-span-2 space-y-6">
+                {/* LEFT COLUMN: PROJECTS */}
+                <div className="lg:col-span-2 space-y-8">
 
-                    {/* Trust Score Breakdown */}
-                    <TrustScoreBreakdown
-                        score={ngo.trustScore}
-                        breakdownJson={ngo.trustBreakdown}
-                        expenseRatio={ngo.expenseRatio}
-                    />
-
-                    {/* Stats Row */}
-                    <div className="grid grid-cols-3 gap-4">
-                        <Card>
-                            <CardHeader className="pb-2"><CardTitle className="text-sm font-medium text-slate-500">Active Projects</CardTitle></CardHeader>
-                            <CardContent><div className="text-2xl font-bold">{ngo.projects.length}</div></CardContent>
-                        </Card>
-                        <Card>
-                            <CardHeader className="pb-2"><CardTitle className="text-sm font-medium text-slate-500">Years Active</CardTitle></CardHeader>
-                            <CardContent><div className="text-2xl font-bold">12+</div></CardContent>
-                        </Card>
-                        <Card>
-                            <CardHeader className="pb-2"><CardTitle className="text-sm font-medium text-slate-500">Beneficiaries</CardTitle></CardHeader>
-                            <CardContent><div className="text-2xl font-bold">5k+</div></CardContent>
-                        </Card>
-                    </div>
-
-                    <Tabs defaultValue="projects">
-                        <TabsList className="grid w-full grid-cols-2">
-                            <TabsTrigger value="projects">Active Projects</TabsTrigger>
-                            <TabsTrigger value="impact">Impact Reports</TabsTrigger>
-                        </TabsList>
-
-                        <TabsContent value="projects" className="space-y-4 pt-4">
-                            {ngo.projects.length > 0 ? (
-                                ngo.projects.map(project => (
-                                    <Card key={project.id}>
-                                        <CardHeader>
+                    {/* RECENT PROJECTS */}
+                    <section>
+                        <h2 className="text-xl font-bold text-slate-900 mb-4 flex items-center gap-2">
+                            <FileText className="h-5 w-5 text-blue-600" /> Recent Projects
+                        </h2>
+                        <div className="space-y-4">
+                            {recentProjects.length > 0 ? (
+                                recentProjects.map(project => (
+                                    <Card key={project.id} className="overflow-hidden border-slate-200">
+                                        <CardHeader className="bg-slate-50/50 pb-3">
                                             <div className="flex justify-between">
-                                                <CardTitle className="text-lg">{project.title}</CardTitle>
-                                                <Badge>{project.sector}</Badge>
+                                                <CardTitle className="text-lg text-slate-900">{project.title}</CardTitle>
+                                                <Badge className="bg-blue-100 text-blue-700 hover:bg-blue-200 border-none">{project.sector}</Badge>
                                             </div>
-                                            <CardDescription>{project.location}</CardDescription>
+                                            <CardDescription className="flex items-center gap-1">
+                                                <MapPin className="h-3 w-3" /> {project.location}
+                                            </CardDescription>
                                         </CardHeader>
-                                        <CardContent>
-                                            <p className="text-slate-600 mb-4">{project.description}</p>
+                                        <CardContent className="pt-4">
+                                            <p className="text-slate-600 mb-6">{project.description}</p>
                                             <div className="space-y-2">
-                                                <div className="flex justify-between text-sm">
+                                                <div className="flex justify-between text-sm font-medium text-slate-700">
                                                     <span>Raised: ₹{(project.raisedAmount / 100000).toFixed(2)} L</span>
                                                     <span>Goal: ₹{(project.targetAmount / 100000).toFixed(2)} L</span>
                                                 </div>
-                                                <Progress value={(project.raisedAmount / project.targetAmount) * 100} />
+                                                <Progress value={(project.raisedAmount / project.targetAmount) * 100} className="h-2" />
                                             </div>
                                         </CardContent>
-                                        <CardDescription className="px-6 pb-4 flex justify-end">
-                                            <Button variant="outline" size="sm">View Tranches</Button>
-                                        </CardDescription>
                                     </Card>
                                 ))
                             ) : (
                                 <div className="text-center py-10 text-slate-500 border rounded-lg bg-slate-50">
-                                    No active projects listed yet.
+                                    No recently active projects.
                                 </div>
                             )}
-                        </TabsContent>
+                        </div>
+                    </section>
 
-                        <TabsContent value="impact">
-                            <div className="text-center py-10 text-slate-500 border rounded-lg bg-slate-50">
-                                Impact reports will be available once projects are completed.
+                    {/* UPCOMING PROJECTS */}
+                    <section>
+                        <h2 className="text-xl font-bold text-slate-900 mb-4 flex items-center gap-2">
+                            <Calendar className="h-5 w-5 text-green-600" /> Upcoming Projects
+                        </h2>
+                        {upcomingProjects.length > 0 ? (
+                            <div className="space-y-4">
+                                {/* Map upcoming projects here */}
                             </div>
-                        </TabsContent>
-                    </Tabs>
+                        ) : (
+                            <Card className="border-dashed border-slate-300 bg-slate-50 shadow-none">
+                                <CardContent className="flex flex-col items-center justify-center py-8 text-slate-500">
+                                    <Calendar className="h-8 w-8 mb-2 opacity-20" />
+                                    <p>No upcoming projects scheduled at the moment.</p>
+                                </CardContent>
+                            </Card>
+                        )}
+                    </section>
 
                 </div>
 
                 {/* RIGHT COLUMN: CONTACT & LEGAL */}
                 <div className="space-y-6">
-                    <Card>
-                        <CardHeader>
-                            <CardTitle className="text-lg">Contact Information</CardTitle>
+                    {/* CONTACT CARD */}
+                    <Card className="border-slate-200 shadow-sm">
+                        <CardHeader className="bg-slate-50 border-b border-slate-100">
+                            <CardTitle className="text-lg text-slate-800">Contact Details</CardTitle>
                         </CardHeader>
-                        <CardContent className="space-y-4 text-sm">
-                            <div className="flex items-center gap-3">
-                                <Mail className="text-slate-400 h-4 w-4" />
-                                <span className="truncate">{ngo.user?.email || "Email hidden"}</span>
-                            </div>
-                            {ngo.mobile && (
-                                <div className="flex items-center gap-3">
-                                    <Phone className="text-slate-400 h-4 w-4" />
-                                    <span>{ngo.mobile}</span>
+                        <CardContent className="pt-6 space-y-5 text-sm">
+                            <div className="flex gap-3">
+                                <Globe className="text-blue-600 h-5 w-5 shrink-0" />
+                                <div>
+                                    <div className="font-medium text-slate-900">Website</div>
+                                    <a href={ngo.website || "#"} target="_blank" className="text-blue-600 hover:underline break-all">
+                                        {ngo.website || "Not Available"}
+                                    </a>
                                 </div>
-                            )}
+                            </div>
+
+                            <div className="flex gap-3">
+                                <Mail className="text-blue-600 h-5 w-5 shrink-0" />
+                                <div>
+                                    <div className="font-medium text-slate-900">Email Address</div>
+                                    <a href={`mailto:${ngo.user?.email}`} className="text-slate-600 hover:text-slate-900">
+                                        {ngo.user?.email || "Email hidden"}
+                                    </a>
+                                </div>
+                            </div>
+
+                            <div className="flex gap-3">
+                                <Phone className="text-blue-600 h-5 w-5 shrink-0" />
+                                <div>
+                                    <div className="font-medium text-slate-900">Phone Number</div>
+                                    <span className="text-slate-600">{ngo.mobile || "Not Provided"}</span>
+                                </div>
+                            </div>
+
                             {ngo.address && (
-                                <div className="flex items-start gap-3">
-                                    <MapPin className="text-slate-400 h-4 w-4 mt-1" />
-                                    <span>{ngo.address}<br />{ngo.city}, {ngo.state} - {ngo.pincode}</span>
+                                <div className="flex gap-3">
+                                    <MapPin className="text-blue-600 h-5 w-5 shrink-0" />
+                                    <div>
+                                        <div className="font-medium text-slate-900">Registered Office</div>
+                                        <span className="text-slate-600 block mt-1">
+                                            {ngo.address}, {ngo.city}<br />
+                                            {ngo.state} - {ngo.pincode}
+                                        </span>
+                                    </div>
                                 </div>
                             )}
+
                             {ngo.contactPerson && (
-                                <div className="border-t pt-3 mt-2">
-                                    <div className="text-xs text-slate-500">Contact Person</div>
-                                    <div className="font-medium">{ngo.contactPerson}</div>
-                                    <div className="text-xs text-slate-500">{ngo.designation}</div>
+                                <div className="bg-blue-50 rounded-lg p-4 mt-2 border border-blue-100">
+                                    <div className="text-xs font-bold text-blue-600 uppercase tracking-wide mb-2">Point of Contact</div>
+                                    <div className="font-bold text-slate-900 text-lg">{ngo.contactPerson}</div>
+                                    <div className="text-slate-600 text-sm">{ngo.designation}</div>
                                 </div>
                             )}
                         </CardContent>
                     </Card>
 
-                    <Card>
-                        <CardHeader>
-                            <CardTitle className="text-lg">Legal & Compliance</CardTitle>
+                    {/* STATS & LEGAL (Condensed) */}
+                    <Card className="border-slate-200 shadow-sm">
+                        <CardHeader className="bg-slate-50 border-b border-slate-100">
+                            <CardTitle className="text-lg text-slate-800">Trust & Compliance</CardTitle>
                         </CardHeader>
-                        <CardContent className="space-y-3">
-                            <div className="flex justify-between items-center text-sm border-b pb-2">
-                                <span className="text-slate-500">Reg. No.</span>
-                                <span className="font-medium">{ngo.registrationNo || "N/A"}</span>
-                            </div>
-                            <div className="flex justify-between items-center text-sm border-b pb-2">
-                                <span className="text-slate-500">PAN</span>
-                                <span className="font-medium font-mono">{ngo.pan || "Protected"}</span>
-                            </div>
-                            <div className="flex justify-between items-center text-sm border-b pb-2">
-                                <span className="text-slate-500">Darpan ID</span>
-                                <span className="font-medium">{ngo.darpanId || "Pending"}</span>
-                            </div>
-                            <div className="flex justify-between items-center text-sm">
-                                <span className="text-slate-500">CSR-1</span>
-                                <span className="font-medium">{ngo.csr1Number || "Pending"}</span>
-                            </div>
+                        <CardContent className="pt-6 space-y-4">
+                            <TrustScoreBreakdown
+                                score={ngo.trustScore}
+                                breakdownJson={ngo.trustBreakdown}
+                                expenseRatio={ngo.expenseRatio}
+                            />
 
-                            <div className="pt-4">
-                                <h4 className="text-sm font-semibold mb-2 flex items-center gap-2"><ShieldCheck className="h-4 w-4" /> Documents</h4>
-                                <div className="space-y-2">
-                                    {ngo.documents.length > 0 ? (
-                                        ngo.documents.map(doc => (
-                                            <div key={doc.id} className="flex items-center justify-between text-xs bg-slate-50 p-2 rounded">
-                                                <span className="truncate max-w-[150px]">{doc.docType}</span>
-                                                <Badge variant={doc.status === 'VERIFIED' ? 'default' : 'secondary'} className="text-[10px] px-1 h-5">
-                                                    {doc.status}
-                                                </Badge>
-                                            </div>
-                                        ))
-                                    ) : (
-                                        <div className="text-xs text-slate-400 italic">No public documents available.</div>
-                                    )}
+                            <div className="pt-4 border-t border-slate-100">
+                                <div className="grid grid-cols-2 gap-2 text-center">
+                                    <div className="bg-slate-50 p-2 rounded">
+                                        <div className="text-xs text-slate-500">12A Verified</div>
+                                        <div className="font-medium text-slate-900">{ngo.is12AVerified ? "Yes" : "No"}</div>
+                                    </div>
+                                    <div className="bg-slate-50 p-2 rounded">
+                                        <div className="text-xs text-slate-500">80G Certified</div>
+                                        <div className="font-medium text-slate-900">{ngo.is80GVerified ? "Yes" : "No"}</div>
+                                    </div>
                                 </div>
                             </div>
                         </CardContent>
                     </Card>
+
                 </div>
+            </div>
+
+            {/* Floating Contact Bar */}
+            <div className="fixed bottom-6 right-6 z-50">
+                <Link href={`/dashboard/chat?ngoId=${id}`}>
+                    <Button className="h-14 px-8 rounded-full shadow-xl bg-blue-600 hover:bg-blue-700 text-white text-lg font-semibold flex items-center gap-3 transition-all hover:scale-105 animate-in fade-in slide-in-from-bottom-10">
+                        <MessageCircle className="h-6 w-6" />
+                        Chat with {ngo.orgName}
+                    </Button>
+                </Link>
             </div>
         </div>
     );

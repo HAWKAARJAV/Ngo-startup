@@ -42,6 +42,7 @@ export default function DocCategory({ categoryKey, title, documents, projectDocs
                             key={idx}
                             projectId={projectId}
                             category={categoryKey}
+                            categoryTitle={title}
                             docName={docName}
                             docData={docData}
                             isCorporate={isCorporate}

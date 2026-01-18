@@ -31,7 +31,6 @@ const NAV_ITEMS = [
     { label: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
     { label: "Find NGOs", href: "/dashboard/search", icon: Search },
     { label: "My Projects", href: "/dashboard/projects", icon: HandHeart },
-    { label: "Volunteering", href: "/dashboard/volunteering", icon: Users },
     { label: "Live Needs", href: "/live-needs", icon: Users },
     { label: "Reports", href: "/dashboard/reports", icon: FileText },
     { label: "AI Reviewer", href: "/dashboard/proposal-check", icon: Sparkles },
