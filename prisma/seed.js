@@ -263,6 +263,16 @@ async function main() {
     })
     console.log(`Created Corporate: Tech Giant CSR`)
 
+    // 5. Create Admin User
+    await prisma.user.create({
+        data: {
+            email: 'admin@ngoconnect.com',
+            name: 'Super Admin',
+            role: 'ADMIN',
+        }
+    })
+    console.log(`Created Admin: Super Admin`)
+
     console.log('Seeding finished.')
 }
 

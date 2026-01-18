@@ -1,3 +1,5 @@
+"use client";
+
 import Link from 'next/link';
 import {
     LayoutDashboard,
@@ -6,18 +8,20 @@ import {
     Wallet,
     ShieldAlert,
     Settings,
-    Menu
+    Menu,
+    LogOut
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import { logout } from "@/app/login/actions";
 
 export default function NgoDashboardLayout({ children }) {
     const navItems = [
-        { href: '/dashboard/my-organization', label: 'Command Center', icon: LayoutDashboard },
-        { href: '/dashboard/my-organization/compliance', label: 'Compliance Ops', icon: FileCheck },
-        { href: '/dashboard/my-organization/projects', label: 'Projects', icon: Briefcase },
-        { href: '/dashboard/my-organization/finance', label: 'Funds & Grants', icon: Wallet },
-        { href: '/dashboard/my-organization/trust-score', label: 'Trust Score', icon: ShieldAlert },
+        { href: '/ngo-portal', label: 'Command Center', icon: LayoutDashboard },
+        { href: '/ngo-portal/compliance', label: 'Compliance Ops', icon: FileCheck },
+        { href: '/ngo-portal/projects', label: 'Projects', icon: Briefcase },
+        { href: '/ngo-portal/finance', label: 'Funds & Grants', icon: Wallet },
+        { href: '/ngo-portal/trust-score', label: 'Trust Score', icon: ShieldAlert },
     ];
 
     const SidebarContent = () => (
@@ -39,9 +43,20 @@ export default function NgoDashboardLayout({ children }) {
                 ))}
             </nav>
             <div className="p-4 border-t border-slate-800">
-                <Button variant="ghost" className="w-full justify-start text-slate-400 hover:text-white hover:bg-slate-800">
+                <Button 
+                    variant="ghost" 
+                    className="w-full justify-start text-slate-400 hover:text-white hover:bg-slate-800 mb-2"
+                >
                     <Settings className="h-5 w-5 mr-3" />
                     Settings
+                </Button>
+                <Button 
+                    variant="ghost" 
+                    className="w-full justify-start text-red-400 hover:text-red-300 hover:bg-red-400/10"
+                    onClick={async () => await logout()}
+                >
+                    <LogOut className="h-5 w-5 mr-3" />
+                    Logout
                 </Button>
             </div>
         </div>

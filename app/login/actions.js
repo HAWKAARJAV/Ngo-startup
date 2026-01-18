@@ -31,7 +31,7 @@ export async function login(formData) {
 
     // 3. Redirect to appropriate dashboard based on role
     if (user.role === "NGO") {
-        redirect("/dashboard/my-organization")
+        redirect("/ngo-portal")
     } else if (user.role === "ADMIN") {
         redirect("/admin/dashboard")
     } else {
