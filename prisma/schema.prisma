@@ -213,4 +213,23 @@ model AdminAuditLog {
   admin       AdminUser @relation(fields: [adminId], references: [id])
 }
 
+// Document Upload Tracking Table
+model DocumentUpload {
+  id              String   @id @default(uuid())
+  ngoId           String
+  ngoName         String
+  projectId       String?
+  projectName     String?
+  documentType    String   // "UC", "PHOTO", "12A", "80G", "FCRA", etc.
+  fileName        String
+  fileUrl         String
+  fileSize        Int?     // in bytes
+  uploadedBy      String   // User ID
+  uploadedAt      DateTime @default(now())
+  status          String   @default("PENDING") // PENDING, VERIFIED, REJECTED
+  verifiedBy      String?
+  verifiedAt      DateTime?
+  remarks         String?
+}
+
 

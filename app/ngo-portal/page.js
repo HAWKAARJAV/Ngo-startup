@@ -104,7 +104,7 @@ export default async function CommandCenterPage() {
                                 <span className="font-semibold text-green-600">Low Risk</span>
                             </div>
                             <Progress value={(ngo.trustScore / 900) * 100} className="h-2 bg-slate-100" />
-                            <Link href="/dashboard/my-organization/trust-score" className="text-xs text-blue-600 hover:underline flex items-center mt-2">
+                            <Link href="/ngo-portal/trust-score" className="text-xs text-blue-600 hover:underline flex items-center mt-2">
                                 View Breakdown &rarr;
                             </Link>
                         </div>
@@ -126,7 +126,7 @@ export default async function CommandCenterPage() {
                             Currently blocked across <span className="font-bold text-slate-900">{blockedTranchesCount} tranches</span> due to missing evidence or reviews.
                         </p>
                         {fundingAtRisk > 0 && (
-                            <Link href="/dashboard/my-organization/projects">
+                            <Link href="/ngo-portal/projects">
                                 <Button size="sm" variant="destructive" className="w-full">
                                     Unblock Funds
                                 </Button>
@@ -156,7 +156,7 @@ export default async function CommandCenterPage() {
                             {status80G === 'EXPIRING_SOON' && <Badge className="bg-amber-100 text-amber-700 hover:bg-amber-200">Expiring</Badge>}
                             {(status80G === 'EXPIRED' || status80G === 'MISSING') && <Badge className="bg-red-100 text-red-700 hover:bg-red-200">Upload</Badge>}
                         </div>
-                        <Link href="/dashboard/my-organization/compliance" className="text-xs text-blue-600 hover:underline flex items-center justify-end">
+                        <Link href="/ngo-portal/compliance" className="text-xs text-blue-600 hover:underline flex items-center justify-end">
                             Manage Docs &rarr;
                         </Link>
                     </CardContent>

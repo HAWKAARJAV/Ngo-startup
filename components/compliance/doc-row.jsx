@@ -7,50 +7,104 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { CheckCircle2, Clock, Eye, FileText, Upload, AlertCircle, XCircle, BellRing } from "lucide-react";
-import { useState } from "react";
-import { uploadComplianceDoc, verifyComplianceDoc } from "@/app/actions/compliance-actions";
+import { useState, useRef } from "react";
+import { uploadComplianceDocWithFile, verifyComplianceDoc } from "@/app/actions/compliance-actions";
 import { useToast } from "@/components/ui/use-toast";
 import { Loader2 } from "lucide-react";
 import RequestDocDialog from "./request-doc-dialog";
 
 export default function DocRow({ projectId, category, categoryTitle, docName, docData, isCorporate, isNgo }) {
     const [isUploading, setIsUploading] = useState(false);
-    const [uploadUrl, setUploadUrl] = useState("");
+    const [selectedFile, setSelectedFile] = useState(null);
     const [isVerifying, setIsVerifying] = useState(false);
     const [remarks, setRemarks] = useState(docData?.remarks || "");
     const [openUpload, setOpenUpload] = useState(false);
     const [openVerify, setOpenVerify] = useState(false);
+    const fileInputRef = useRef(null);
 
     const { toast } = useToast();
 
     const status = docData?.status || 'PENDING';
 
-    // ... (handlers remain same)
+    const handleFileChange = (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
 
-    const handleUpload = async () => {
-        if (!uploadUrl) {
+        // Validate file size (2MB max)
+        const maxSize = 2 * 1024 * 1024; // 2MB
+        if (file.size > maxSize) {
             toast({
                 variant: "destructive",
                 title: "Error",
-                description: "Please enter a valid URL",
+                description: "File size must be less than 2MB",
+            });
+            e.target.value = null;
+            return;
+        }
+
+        // Validate file type
+        const allowedTypes = ['application/pdf', 'image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
+        if (!allowedTypes.includes(file.type)) {
+            toast({
+                variant: "destructive",
+                title: "Error",
+                description: "Only PDF and image files are allowed",
+            });
+            e.target.value = null;
+            return;
+        }
+
+        setSelectedFile(file);
+    };
+
+    const handleUpload = async () => {
+        if (!selectedFile) {
+            toast({
+                variant: "destructive",
+                title: "Error",
+                description: "Please select a file to upload",
             });
             return;
         }
+
         setIsUploading(true);
-        // Mock upload
-        const res = await uploadComplianceDoc(projectId, category, docName, uploadUrl);
-        setIsUploading(false);
-        if (res.success) {
-            toast({
-                title: "Success",
-                description: "Document uploaded successfully",
-            });
-            setOpenUpload(false);
-        } else {
+        console.log("Uploading document:", { projectId, category, docName, fileName: selectedFile.name });
+        
+        try {
+            const formData = new FormData();
+            formData.append('projectId', projectId);
+            formData.append('category', category);
+            formData.append('docName', docName);
+            formData.append('file', selectedFile);
+
+            const res = await uploadComplianceDocWithFile(formData);
+            console.log("Upload response:", res);
+            setIsUploading(false);
+            
+            if (res.success) {
+                toast({
+                    title: "Success",
+                    description: "Document uploaded successfully",
+                });
+                setOpenUpload(false);
+                setSelectedFile(null);
+                if (fileInputRef.current) {
+                    fileInputRef.current.value = null;
+                }
+            } else {
+                toast({
+                    variant: "destructive",
+                    title: "Error",
+                    description: res.error || "Failed to upload document",
+                });
+            }
+        } catch (error) {
+            console.error("Upload error:", error);
+            setIsUploading(false);
             toast({
                 variant: "destructive",
                 title: "Error",
-                description: "Failed to upload document",
+                description: "An unexpected error occurred",
             });
         }
     };
@@ -157,17 +211,24 @@ export default function DocRow({ projectId, category, categoryTitle, docName, do
                                 </DialogHeader>
                                 <div className="grid w-full items-center gap-4">
                                     <div className="flex flex-col space-y-1.5">
-                                        <Label htmlFor="url">Document URL (Drive/S3 Link)</Label>
+                                        <Label htmlFor="file">Select File (PDF or Image, max 2MB)</Label>
                                         <Input
-                                            id="url"
-                                            placeholder="https://..."
-                                            value={uploadUrl}
-                                            onChange={(e) => setUploadUrl(e.target.value)}
+                                            id="file"
+                                            type="file"
+                                            ref={fileInputRef}
+                                            accept=".pdf,.jpg,.jpeg,.png,.gif,.webp"
+                                            onChange={handleFileChange}
+                                            className="cursor-pointer"
                                         />
+                                        {selectedFile && (
+                                            <p className="text-xs text-slate-500 mt-1">
+                                                Selected: {selectedFile.name} ({(selectedFile.size / 1024).toFixed(1)} KB)
+                                            </p>
+                                        )}
                                     </div>
                                 </div>
                                 <DialogFooter>
-                                    <Button onClick={handleUpload} disabled={isUploading}>
+                                    <Button onClick={handleUpload} disabled={isUploading || !selectedFile}>
                                         {isUploading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                                         Submit
                                     </Button>
