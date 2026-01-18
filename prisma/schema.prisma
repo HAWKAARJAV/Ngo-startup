@@ -60,6 +60,11 @@ model NGO {
   trustBreakdown String?         @default("{}") // JSON string for score breakdown
   
   createdAt      DateTime        @default(now())
+  
+  // Admin Controls
+  systemStatus   String          @default("ACTIVE") // ACTIVE, SUSPENDED, BLACKLISTED, UNDER_REVIEW
+  adminNotes     String?
+
   documents      ComplianceDoc[]
   complianceLogs ComplianceLog[] // Audit Trail
   user           User            @relation(fields: [userId], references: [id])
@@ -73,6 +78,11 @@ model Corporate {
   industry     String
   csrBudget    Float
   mandateAreas String
+  
+  // Admin Controls
+  systemStatus String   @default("ACTIVE")
+  adminNotes   String?
+
   user         User       @relation(fields: [userId], references: [id])
   donations    Donation[]
   opportunities Opportunity[]
@@ -177,3 +187,30 @@ model ProjectComplianceDoc {
 
   project     Project          @relation(fields: [projectId], references: [id])
 }
+
+// New Admin User Model
+model AdminUser {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  name      String
+  role      String   @default("READ_ONLY") // SUPER_ADMIN, COMPLIANCE, FINANCE, READ_ONLY
+  lastLogin DateTime?
+  isActive  Boolean  @default(true)
+  
+  auditLogs AdminAuditLog[] // Reverse relation
+}
+
+// Immutable Admin Audit Log
+model AdminAuditLog {
+  id          String   @id @default(uuid())
+  adminId     String
+  action      String   // "SUSPEND_NGO", "OVERRIDE_SCORE", "APPROVE_KYC"
+  targetEntity String  // "NGO:123", "PROJECT:456"
+  details     String?  // JSON: { reason: "Found fake docs", oldValue: "ACTIVE", newValue: "SUSPENDED" }
+  ipAddress   String?
+  timestamp   DateTime @default(now())
+
+  admin       AdminUser @relation(fields: [adminId], references: [id])
+}
+
+

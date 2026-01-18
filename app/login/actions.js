@@ -29,8 +29,15 @@ export async function login(formData) {
         path: "/"
     })
 
-    // 3. Redirect to appropriate dashboard
-    redirect("/dashboard")
+    // 3. Redirect to appropriate dashboard based on role
+    if (user.role === "NGO") {
+        redirect("/dashboard/my-organization")
+    } else if (user.role === "ADMIN") {
+        redirect("/admin/dashboard")
+    } else {
+        // Corporate users
+        redirect("/dashboard")
+    }
 }
 
 export async function logout() {

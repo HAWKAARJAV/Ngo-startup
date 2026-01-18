@@ -31,9 +31,12 @@ export default function LoginPage() {
                     <CardFooter className="flex flex-col space-y-4">
                         <Button className="w-full bg-blue-600 hover:bg-blue-700">Sign In</Button>
                         <div className="text-center text-sm text-slate-500">
-                            <p>Demo Credentials:</p>
-                            <p className="font-mono text-xs">csr@techgiant.com</p>
-                            <p className="font-mono text-xs">info@pratham.org</p>
+                            <p className="font-semibold mb-1">Demo Credentials:</p>
+                            <div className="space-y-1">
+                                <p className="text-xs"><span className="font-semibold">Corporate:</span> <span className="font-mono">csr@techgiant.com</span></p>
+                                <p className="text-xs"><span className="font-semibold">NGO:</span> <span className="font-mono">info@deepalaya.org</span></p>
+                                <p className="text-xs text-slate-400">(Any password works)</p>
+                            </div>
                         </div>
                     </CardFooter>
                 </form>
