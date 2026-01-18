@@ -40,6 +40,12 @@ model NGO {
   csr1Number     String?
   fcraRenewalDate DateTime?
   lastAuditDate   DateTime?
+
+  // Compliance Freshness Tracking (NEW)
+  validity12A         DateTime?
+  validity80G         DateTime?
+  validityCSR1        DateTime?
+  lastComplianceCheck DateTime?
   
   // Financial Metrics (For Trust Score)
   annualBudget    Float   @default(0)
@@ -55,6 +61,7 @@ model NGO {
   
   createdAt      DateTime        @default(now())
   documents      ComplianceDoc[]
+  complianceLogs ComplianceLog[] // Audit Trail
   user           User            @relation(fields: [userId], references: [id])
   projects       Project[]
 }
@@ -111,6 +118,11 @@ model Tranche {
   status          String        @default("LOCKED") // Enum: TrancheStatus
   unlockCondition String
   
+  // Funding Block Logic (NEW)
+  isBlocked            Boolean?
+  blockReason          String? // "MISSING_UC", "COMPLIANCE_EXPIRED_12A", "GEO_MISMATCH"
+  expectedEvidenceType String? // "PHOTO_GEO", "VIDEO", "DOC_PDF"
+
   // Escrow & Verification Logic
   releaseRequested Boolean      @default(false)
   proofDocUrl     String?       // UC or Photo Evidence
@@ -137,6 +149,19 @@ model ComplianceDoc {
   url     String
   status  String             @default("PENDING") // Enum: VerificationStatus
   ngo     NGO                @relation(fields: [ngoId], references: [id])
+}
+
+// New Audit Log Model
+model ComplianceLog {
+  id          String   @id @default(uuid())
+  ngoId       String
+  docType     String   // "12A", "80G", "UC", "PROJECT_EVIDENCE"
+  action      String   // "UPLOAD", "VERIFY", "REJECT", "EXPIRE"
+  actorId     String   // Who did it? (User ID)
+  timestamp   DateTime @default(now())
+  metadata    String?  // JSON: { "oldVal": "...", "newVal": "...", "reason": "..." }
+  
+  ngo         NGO      @relation(fields: [ngoId], references: [id])
 }
 
 model ProjectComplianceDoc {
