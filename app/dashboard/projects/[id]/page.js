@@ -33,7 +33,7 @@ export default async function ProjectDetailsPage({ params }) {
 
     // Mocking the "Corporate View" since we are the funder
     const isCorporate = true;
-    const isNgo = true; // Enabled both for demo purposes so user can test both flows
+    const isNgo = false; // Corporate users should not see NGO upload controls
 
     const percentFunded = (project.raisedAmount / project.targetAmount) * 100;
 
