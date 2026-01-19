@@ -54,7 +54,7 @@ export default function ImpactReportGenerator() {
                         </div>
                         <div className="text-right">
                             <h2 className="text-xl font-bold text-slate-700">Tech Giant CSR</h2>
-                            <p className="text-sm text-slate-500">Generated on {new Date().toLocaleDateString()}</p>
+                            <p className="text-sm text-slate-500">Generated on <span suppressHydrationWarning>{new Date().toLocaleDateString('en-IN')}</span></p>
                         </div>
                     </div>
 

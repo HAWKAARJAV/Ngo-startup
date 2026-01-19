@@ -49,7 +49,7 @@ export default async function AdminAuditLogPage() {
                         {logs.map((log) => (
                             <TableRow key={log.id} className="border-neutral-800 hover:bg-neutral-800/50">
                                 <TableCell className="font-mono text-xs text-neutral-500">
-                                    {new Date(log.timestamp).toLocaleString()}
+                                    {new Date(log.timestamp).toLocaleString('en-IN')}
                                 </TableCell>
                                 <TableCell className="font-medium text-neutral-300">
                                     <div className="flex items-center gap-2">

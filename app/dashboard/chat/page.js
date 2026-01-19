@@ -1,129 +1,135 @@
-"use client";
+import prisma from '@/lib/prisma';
+import CorporateChatPage from '@/components/corporate-chat-page';
+import { cookies } from 'next/headers';
 
-import { useState, useEffect } from "react";
-import { useSearchParams } from "next/navigation";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Send, MoreVertical, Phone, Video } from "lucide-react";
-import Link from "next/link";
+export const dynamic = 'force-dynamic';
 
-export default function ChatPage() {
-    const searchParams = useSearchParams();
-    const ngoId = searchParams.get('ngoId');
-    const [messages, setMessages] = useState([
-        { id: 1, text: "Hello! How can we help you today?", sender: "ngo", time: "10:00 AM" },
-    ]);
-    const [newMessage, setNewMessage] = useState("");
+// Get the currently logged-in Corporate user from cookie
+const getLoggedInCorporateUser = async () => {
+  const cookieStore = await cookies();
+  const token = cookieStore.get('token');
+  
+  if (!token) {
+    return { corporate: null, user: null };
+  }
+  
+  try {
+    const sessionData = JSON.parse(token.value);
+    
+    // Get the user from DB
+    const user = await prisma.user.findUnique({
+      where: { id: sessionData.id }
+    });
+    
+    if (!user || user.role !== 'CORPORATE') {
+      return { corporate: null, user: null };
+    }
+    
+    // Get the Corporate profile for this user
+    const corporate = await prisma.corporate.findUnique({
+      where: { userId: user.id },
+      include: { user: true }
+    });
+    
+    return { corporate, user };
+  } catch (e) {
+    console.error('Error parsing session:', e);
+    return { corporate: null, user: null };
+  }
+};
 
-    const handleSend = () => {
-        if (!newMessage.trim()) return;
-        setMessages([...messages, { id: Date.now(), text: newMessage, sender: "me", time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) }]);
-        setNewMessage("");
+// Get all chat rooms for corporate
+const getChatRooms = async (corporateId) => {
+  const rooms = await prisma.chatRoom.findMany({
+    where: { corporateId },
+    include: {
+      messages: {
+        orderBy: { createdAt: 'desc' },
+        take: 1
+      }
+    },
+    orderBy: { lastMessageAt: 'desc' }
+  });
 
-        // Mock auto-reply
-        setTimeout(() => {
-            setMessages(prev => [...prev, { id: Date.now(), text: "Thanks for reaching out! An NGO manager will reply shortly.", sender: "ngo", time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) }]);
-        }, 1000);
-    };
+  // Add NGO details to each room
+  const roomsWithNgo = await Promise.all(
+    rooms.map(async (room) => {
+      const ngo = await prisma.nGO.findUnique({
+        where: { id: room.ngoId },
+        include: { 
+          user: true,
+          projects: {
+            take: 3,
+            orderBy: { createdAt: 'desc' }
+          }
+        }
+      });
+      return { ...room, ngo };
+    })
+  );
 
+  return roomsWithNgo;
+};
+
+// Get all active NGOs
+const getAllNGOs = async () => {
+  return await prisma.nGO.findMany({
+    select: {
+      id: true,
+      orgName: true,
+      city: true,
+      state: true,
+      mission: true,
+      trustScore: true,
+      userId: true
+    },
+    where: {
+      systemStatus: 'ACTIVE'
+    },
+    take: 50
+  });
+};
+
+export default async function ChatPage({ searchParams }) {
+  const params = await searchParams;
+  const selectedRoomId = params?.room;
+
+  const { corporate, user } = await getLoggedInCorporateUser();
+  
+  if (!corporate || !user) {
     return (
-        <div className="flex h-[calc(100vh-8rem)] gap-4">
-            {/* Sidebar (List of chats - Mock for now) */}
-            <div className="w-80 border-r border-slate-200 hidden md:flex flex-col">
-                <div className="p-4 border-b border-slate-100 font-bold text-lg">Messages</div>
-                <div className="flex-1 overflow-y-auto">
-                    <div className="p-3 bg-blue-50 border-l-4 border-blue-600 cursor-pointer hover:bg-slate-50">
-                        <div className="flex items-center gap-3">
-                            <Avatar>
-                                <AvatarImage src="https://ui-avatars.com/api/?name=Smile+Foundation&background=0D8ABC&color=fff" />
-                                <AvatarFallback>SF</AvatarFallback>
-                            </Avatar>
-                            <div>
-                                <div className="font-semibold text-sm text-slate-900">Smile Foundation</div>
-                                <div className="text-xs text-slate-500 truncate w-40">Thanks for reaching out!</div>
-                            </div>
-                        </div>
-                    </div>
-                    <div className="p-3 cursor-pointer hover:bg-slate-50 opacity-60">
-                        <div className="flex items-center gap-3">
-                            <Avatar>
-                                <AvatarFallback>G</AvatarFallback>
-                            </Avatar>
-                            <div>
-                                <div className="font-semibold text-sm text-slate-900">Goonj</div>
-                                <div className="text-xs text-slate-500 truncate w-40">Looking forward to the pa...</div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            {/* Chat Area */}
-            <div className="flex-1 flex flex-col bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
-                {/* Chat Header */}
-                <div className="p-4 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
-                    <div className="flex items-center gap-3">
-                        <Avatar>
-                            <AvatarImage src={`https://ui-avatars.com/api/?name=${ngoId ? 'Target NGO' : 'Smile Foundation'}&background=0D8ABC&color=fff`} />
-                            <AvatarFallback>NG</AvatarFallback>
-                        </Avatar>
-                        <div>
-                            <div className="font-bold text-slate-900">
-                                {ngoId ? "Connecting with NGO..." : "Smile Foundation"}
-                            </div>
-                            <div className="flex items-center gap-1.5 text-xs text-green-600">
-                                <span className="relative flex h-2 w-2">
-                                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
-                                    <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
-                                </span>
-                                Online
-                            </div>
-                        </div>
-                    </div>
-                    <div className="flex items-center gap-2 text-slate-400">
-                        <Button variant="ghost" size="icon"><Phone size={18} /></Button>
-                        <Button variant="ghost" size="icon"><Video size={18} /></Button>
-                        <Button variant="ghost" size="icon"><MoreVertical size={18} /></Button>
-                    </div>
-                </div>
-
-                {/* Messages */}
-                <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-slate-50/30">
-                    {messages.map((msg) => (
-                        <div key={msg.id} className={`flex ${msg.sender === 'me' ? 'justify-end' : 'justify-start'}`}>
-                            <div className={`max-w-[70%] rounded-2xl px-4 py-2.5 shadow-sm text-sm ${msg.sender === 'me'
-                                    ? 'bg-blue-600 text-white rounded-br-none'
-                                    : 'bg-white border border-slate-200 text-slate-800 rounded-bl-none'
-                                }`}>
-                                {msg.text}
-                                <div className={`text-[10px] mt-1 text-right ${msg.sender === 'me' ? 'text-blue-100' : 'text-slate-400'}`}>
-                                    {msg.time}
-                                </div>
-                            </div>
-                        </div>
-                    ))}
-                </div>
-
-                {/* Input Area */}
-                <div className="p-4 bg-white border-t border-slate-100">
-                    <form
-                        onSubmit={(e) => { e.preventDefault(); handleSend(); }}
-                        className="flex gap-2"
-                    >
-                        <Input
-                            value={newMessage}
-                            onChange={(e) => setNewMessage(e.target.value)}
-                            placeholder="Type your message..."
-                            className="flex-1 bg-slate-50 border-slate-200 focus-visible:ring-blue-600"
-                        />
-                        <Button type="submit" size="icon" className="bg-blue-600 hover:bg-blue-700">
-                            <Send size={18} />
-                        </Button>
-                    </form>
-                </div>
-            </div>
-        </div>
+      <div className="flex items-center justify-center h-96">
+        <p className="text-slate-500">Corporate profile not found</p>
+      </div>
     );
+  }
+
+  const chatRooms = await getChatRooms(corporate.id);
+  const ngos = await getAllNGOs();
+
+  // Get selected room messages
+  let selectedRoomMessages = [];
+  let selectedNgo = null;
+  
+  if (selectedRoomId) {
+    selectedRoomMessages = await prisma.chatMessage.findMany({
+      where: { roomId: selectedRoomId },
+      orderBy: { createdAt: 'asc' }
+    });
+
+    const selectedRoom = chatRooms.find(r => r.id === selectedRoomId);
+    selectedNgo = selectedRoom?.ngo;
+  }
+
+  return (
+    <CorporateChatPage 
+      corporate={JSON.parse(JSON.stringify(corporate))} 
+      user={JSON.parse(JSON.stringify(user))}
+      ngos={JSON.parse(JSON.stringify(ngos))}
+      chatRooms={JSON.parse(JSON.stringify(chatRooms))}
+      selectedRoomId={selectedRoomId}
+      initialMessages={JSON.parse(JSON.stringify(selectedRoomMessages))}
+      selectedNgo={selectedNgo ? JSON.parse(JSON.stringify(selectedNgo)) : null}
+    />
+  );
 }

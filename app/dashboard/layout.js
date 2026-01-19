@@ -1,22 +1,24 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
     Users,
     LayoutDashboard,
     FileText,
-    Settings,
     LogOut,
     Menu,
     X,
     Building2,
     HandHeart,
     Search,
-    Sparkles
+    Sparkles,
+    MessageCircle,
+    Bell
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import {
     Avatar,
     AvatarFallback,
@@ -24,24 +26,59 @@ import {
 } from "@/components/ui/avatar";
 import { cn } from "@/lib/utils";
 import AIChatbotWidget from "@/components/ai-chatbot";
+import NotificationCenter from "@/components/notification-center";
+import socketManager from "@/lib/socket";
 
 import { logout } from "@/app/login/actions";
 
+// Helper to get cookie value
+function getCookie(name) {
+    if (typeof document === 'undefined') return null;
+    const value = `; ${document.cookie}`;
+    const parts = value.split(`; ${name}=`);
+    if (parts.length === 2) return parts.pop().split(';').shift();
+    return null;
+}
+
 const NAV_ITEMS = [
     { label: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
-    { label: "Find NGOs", href: "/dashboard/search", icon: Search },
+    { label: "Discover NGOs", href: "/dashboard/discover", icon: Search },
     { label: "My Projects", href: "/dashboard/projects", icon: HandHeart },
+    { label: "Chat", href: "/dashboard/chat", icon: MessageCircle },
     { label: "Live Needs", href: "/live-needs", icon: Users },
     { label: "Reports", href: "/dashboard/reports", icon: FileText },
     { label: "AI Reviewer", href: "/dashboard/proposal-check", icon: Sparkles },
-    { label: "Corporate", href: "/dashboard/corporate", icon: Building2 },
 ];
 
 export default function DashboardLayout({ children }) {
     const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+    const [userData, setUserData] = useState(null);
     const pathname = usePathname();
 
+    // Get user data from cookie and initialize socket
+    useEffect(() => {
+        const tokenCookie = getCookie('token');
+        if (tokenCookie) {
+            try {
+                const session = JSON.parse(decodeURIComponent(tokenCookie));
+                setUserData(session);
+                
+                // Connect socket with actual user data
+                if (session.role === 'CORPORATE') {
+                    socketManager.connect(session.id, 'CORPORATE', session.email.split('@')[0]);
+                }
+            } catch (e) {
+                console.error('Error parsing token:', e);
+            }
+        }
+
+        return () => {
+            // Don't disconnect on unmount as other components may need it
+        };
+    }, []);
+
     const handleLogout = async () => {
+        socketManager.disconnect();
         await logout();
     };
 
@@ -120,13 +157,18 @@ export default function DashboardLayout({ children }) {
                     </h1>
 
                     <div className="flex items-center gap-4">
+                        {/* Notification Center */}
+                        {userData && (
+                            <NotificationCenter userId={userData.id} userRole="CORPORATE" />
+                        )}
+                        
                         <Button variant="outline" className="hidden md:flex">
                             <Building2 className="mr-2 h-4 w-4" />
-                            Reliance Foundation
+                            {userData?.email?.split('@')[0] || 'Corporate'}
                         </Button>
                         <Avatar>
                             <AvatarImage src="https://github.com/shadcn.png" />
-                            <AvatarFallback>CN</AvatarFallback>
+                            <AvatarFallback>{userData?.email?.substring(0,2).toUpperCase() || 'CO'}</AvatarFallback>
                         </Avatar>
                     </div>
                 </header>

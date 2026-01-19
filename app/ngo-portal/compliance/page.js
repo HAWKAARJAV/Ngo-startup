@@ -76,11 +76,11 @@ export default async function ComplianceOpsPage() {
                                     </div>
                                 ) : isExpired ? (
                                     <div className="bg-red-50 text-red-700 text-sm p-3 rounded-md flex gap-2 items-center">
-                                        <AlertTriangle className="h-4 w-4" /> Expired on {new Date(doc.validity).toLocaleDateString()}.
+                                        <AlertTriangle className="h-4 w-4" /> Expired on {new Date(doc.validity).toLocaleDateString('en-IN')}.
                                     </div>
                                 ) : (
                                     <div className="bg-green-50 text-green-700 text-sm p-3 rounded-md flex gap-2 items-center">
-                                        <FileCheck className="h-4 w-4" /> Valid until {new Date(doc.validity).toLocaleDateString()}.
+                                        <FileCheck className="h-4 w-4" /> Valid until {new Date(doc.validity).toLocaleDateString('en-IN')}.
                                     </div>
                                 )}
 

@@ -108,15 +108,15 @@ export default async function AdminNgoDetailPage(props) {
                             <CardContent className="space-y-4">
                                 <div className="flex justify-between text-sm items-center border-b border-neutral-800 pb-3">
                                     <span className="text-neutral-400">12A Certificate</span>
-                                    <span className="font-mono text-neutral-200">{ngo.validity12A ? new Date(ngo.validity12A).toLocaleDateString() : 'MISSING'}</span>
+                                    <span className="font-mono text-neutral-200">{ngo.validity12A ? new Date(ngo.validity12A).toLocaleDateString('en-IN') : 'MISSING'}</span>
                                 </div>
                                 <div className="flex justify-between text-sm items-center border-b border-neutral-800 pb-3">
                                     <span className="text-neutral-400">80G Certificate</span>
-                                    <span className="font-mono text-neutral-200">{ngo.validity80G ? new Date(ngo.validity80G).toLocaleDateString() : 'MISSING'}</span>
+                                    <span className="font-mono text-neutral-200">{ngo.validity80G ? new Date(ngo.validity80G).toLocaleDateString('en-IN') : 'MISSING'}</span>
                                 </div>
                                 <div className="flex justify-between text-sm items-center">
                                     <span className="text-neutral-400">FCRA Renewal</span>
-                                    <span className="font-mono text-neutral-200">{ngo.fcraRenewalDate ? new Date(ngo.fcraRenewalDate).toLocaleDateString() : 'MISSING'}</span>
+                                    <span className="font-mono text-neutral-200">{ngo.fcraRenewalDate ? new Date(ngo.fcraRenewalDate).toLocaleDateString('en-IN') : 'MISSING'}</span>
                                 </div>
                             </CardContent>
                         </Card>

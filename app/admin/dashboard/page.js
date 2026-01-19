@@ -145,7 +145,7 @@ export default async function AdminDashboardPage() {
                                                 <span className="text-blue-400">{log.action}</span> on {log.targetEntity}
                                             </div>
                                             <div className="text-xs text-neutral-500 mt-1">
-                                                {new Date(log.timestamp).toLocaleString()} • {log.details}
+                                                {new Date(log.timestamp).toLocaleString('en-IN')} • {log.details}
                                             </div>
                                         </div>
                                     </div>

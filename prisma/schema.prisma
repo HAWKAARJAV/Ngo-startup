@@ -232,4 +232,72 @@ model DocumentUpload {
   remarks         String?
 }
 
+// Real-time Chat System
+model ChatRoom {
+  id          String    @id @default(uuid())
+  corporateId String
+  ngoId       String
+  createdAt   DateTime  @default(now())
+  lastMessageAt DateTime @default(now())
+  
+  messages    ChatMessage[]
+  
+  @@unique([corporateId, ngoId])
+}
+
+model ChatMessage {
+  id         String   @id @default(uuid())
+  roomId     String
+  senderId   String   // User ID
+  senderRole String   // "CORPORATE" or "NGO"
+  senderName String
+  message    String   @db.Text
+  messageType String  @default("TEXT") // TEXT, SYSTEM, DOCUMENT_REQUEST, DOCUMENT_UPLOAD
+  metadata   String?  @db.Text // JSON for additional data
+  isRead     Boolean  @default(false)
+  createdAt  DateTime @default(now())
+  
+  room       ChatRoom @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  
+  @@index([roomId])
+  @@index([createdAt])
+}
+
+// Real-time Notifications
+model Notification {
+  id          String   @id @default(uuid())
+  userId      String   // Recipient user ID
+  userRole    String   // "CORPORATE" or "NGO"
+  type        String   // "CHAT", "DOCUMENT_REQUEST", "DOCUMENT_UPLOADED", "TRANCHE_REQUEST", "TRANCHE_APPROVED"
+  title       String
+  message     String   @db.Text
+  link        String?  // URL to navigate to
+  metadata    String?  @db.Text // JSON for additional data
+  isRead      Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  
+  @@index([userId, isRead])
+  @@index([createdAt])
+}
+
+// Document Request Tracking
+model DocumentRequest {
+  id          String   @id @default(uuid())
+  corporateId String
+  ngoId       String
+  projectId   String?
+  requestType String   // "COMPLIANCE_DOC", "UTILIZATION_CERTIFICATE", "IMPACT_REPORT", "TRANCHE_EVIDENCE"
+  docName     String   // Specific document requested
+  description String?  @db.Text
+  priority    String   @default("MEDIUM") // HIGH, MEDIUM, LOW
+  status      String   @default("PENDING") // PENDING, UPLOADED, VERIFIED, REJECTED
+  requestedAt DateTime @default(now())
+  uploadedAt  DateTime?
+  fileUrl     String?
+  remarks     String?
+  
+  @@index([ngoId, status])
+  @@index([corporateId])
+}
+
 

@@ -53,30 +53,32 @@ export default function LoginPage() {
                     <CardFooter className="flex flex-col space-y-4">
                         <Button type="submit" className="w-full bg-blue-600 hover:bg-blue-700">Sign In</Button>
                         <div className="text-center text-sm text-slate-500">
-                            <p className="font-semibold mb-2">Quick Login:</p>
+                            <p className="font-semibold mb-2">Quick Login (Chat Demo):</p>
                             <div className="space-y-2">
                                 <button
                                     type="button"
                                     onClick={() => quickLogin('csr@techgiant.com')}
                                     className="w-full bg-blue-50 hover:bg-blue-100 border border-blue-200 p-3 rounded-lg transition-colors text-left"
                                 >
-                                    <p className="font-semibold text-blue-700 text-sm">Corporate Dashboard</p>
+                                    <p className="font-semibold text-blue-700 text-sm">🏢 Corporate: Tech Giant</p>
                                     <p className="font-mono text-xs text-blue-600">csr@techgiant.com</p>
+                                    <p className="text-xs text-slate-500 mt-1">Has chat with Smile Foundation</p>
                                 </button>
                                 <button
                                     type="button"
-                                    onClick={() => quickLogin('info@deepalaya.org')}
+                                    onClick={() => quickLogin('contact@smilefoundation.org')}
                                     className="w-full bg-green-50 hover:bg-green-100 border border-green-200 p-3 rounded-lg transition-colors text-left"
                                 >
-                                    <p className="font-semibold text-green-700 text-sm">NGO Dashboard</p>
-                                    <p className="font-mono text-xs text-green-600">info@deepalaya.org</p>
+                                    <p className="font-semibold text-green-700 text-sm">🏛️ NGO: Smile Foundation</p>
+                                    <p className="font-mono text-xs text-green-600">contact@smilefoundation.org</p>
+                                    <p className="text-xs text-slate-500 mt-1">Has chat with Tech Giant</p>
                                 </button>
                                 <button
                                     type="button"
                                     onClick={() => quickLogin('admin@ngoconnect.com')}
                                     className="w-full bg-purple-50 hover:bg-purple-100 border border-purple-200 p-3 rounded-lg transition-colors text-left"
                                 >
-                                    <p className="font-semibold text-purple-700 text-sm">Admin Dashboard</p>
+                                    <p className="font-semibold text-purple-700 text-sm">👨‍💼 Admin Dashboard</p>
                                     <p className="font-mono text-xs text-purple-600">admin@ngoconnect.com</p>
                                 </button>
                             </div>
