@@ -66,6 +66,13 @@ const ALL_CATEGORIES = [
             'Declaration of no employee benefit',
             'Declaration of non-political & non-religious usage'
         ]
+    },
+    {
+        key: 'G',
+        title: 'Custom Document Requests',
+        docs: [
+            'Request Additional Document (Not Listed Above)'
+        ]
     }
 ];
 

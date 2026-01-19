@@ -114,11 +114,12 @@ export default function RequestDocDialog({
                         )}
 
                         <div className="space-y-2">
-                            <Label>Additional Note (Optional)</Label>
+                            <Label>{selectedDoc === 'Request Additional Document (Not Listed Above)' || defaultDoc === 'Request Additional Document (Not Listed Above)' ? 'Document Description (Required)' : 'Additional Note (Optional)'}</Label>
                             <Textarea
-                                placeholder="E.g., Please ensure the audit period matches Q3..."
+                                placeholder={selectedDoc === 'Request Additional Document (Not Listed Above)' || defaultDoc === 'Request Additional Document (Not Listed Above)' ? "Describe the custom document you need (e.g., 'Photographs of beneficiary training session', 'Invoice for equipment purchased')..." : "E.g., Please ensure the audit period matches Q3..."}
                                 value={message}
                                 onChange={(e) => setMessage(e.target.value)}
+                                required={selectedDoc === 'Request Additional Document (Not Listed Above)' || defaultDoc === 'Request Additional Document (Not Listed Above)'}
                             />
                         </div>
 
@@ -137,7 +138,7 @@ export default function RequestDocDialog({
                         <Button variant="outline" onClick={() => setOpen(false)}>Cancel</Button>
                         <Button
                             onClick={handleSend}
-                            disabled={!selectedCategory || !selectedDoc}
+                            disabled={!selectedCategory || !selectedDoc || ((selectedDoc === 'Request Additional Document (Not Listed Above)' || defaultDoc === 'Request Additional Document (Not Listed Above)') && !message.trim())}
                             className="bg-amber-600 hover:bg-amber-700"
                         >
                             Send Request

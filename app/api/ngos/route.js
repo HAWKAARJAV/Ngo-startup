@@ -4,6 +4,7 @@ import { NextResponse } from 'next/server';
 export async function GET(request) {
     const { searchParams } = new URL(request.url);
     const query = searchParams.get('q');
+    const limit = parseInt(searchParams.get('limit') || '20', 10);
 
     try {
         const where = {};
@@ -24,10 +25,25 @@ export async function GET(request) {
                 projects: true,
                 documents: true,
             },
-            take: 20
+            take: limit
         });
 
-        return NextResponse.json(ngos);
+        // Add project count to each NGO
+        const ngosWithCount = ngos.map(ngo => ({
+            ...ngo,
+            projectCount: ngo.projects?.length || 0,
+            ngoProfile: {
+                id: ngo.id,
+                city: ngo.city,
+                trustScore: ngo.trustScore,
+                is12AVerified: ngo.is12AVerified,
+                is80GVerified: ngo.is80GVerified,
+                fcraStatus: ngo.fcraStatus,
+                mission: ngo.mission
+            }
+        }));
+
+        return NextResponse.json(ngosWithCount);
     } catch (error) {
         console.error('Request error', error);
         return NextResponse.json({ error: 'Error fetching NGOs' }, { status: 500 });

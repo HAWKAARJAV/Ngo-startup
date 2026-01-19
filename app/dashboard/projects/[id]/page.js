@@ -46,7 +46,7 @@ export default async function ProjectDetailsPage({ params }) {
 
     // Corporate view
     const isCorporate = true;
-    const isNgo = true;
+    const isNgo = false; // Corporate users should not see NGO upload controls
 
     const percentFunded = (project.raisedAmount / project.targetAmount) * 100;
     const pendingRequests = project.tranches.filter(t => t.releaseRequested && t.status !== 'RELEASED').length;
