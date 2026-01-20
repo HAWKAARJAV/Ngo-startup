@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
@@ -11,7 +12,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import ChatInterface from '@/components/chat-interface';
 import NotificationCenter from '@/components/notification-center';
 import socketManager from '@/lib/socket';
-import { MessageCircle, Search, Loader2, Building2, FileText, Plus, Send } from 'lucide-react';
+import { MessageCircle, Search, Loader2, Building2, FileText, Plus, Send, Eye, CheckCircle2, Clock, AlertCircle, FileCheck } from 'lucide-react';
 
 export default function CorporateChatPage({ corporate, user, ngos }) {
   const [chatRooms, setChatRooms] = useState([]);
@@ -21,6 +22,8 @@ export default function CorporateChatPage({ corporate, user, ngos }) {
   const [showRequestDialog, setShowRequestDialog] = useState(false);
   const [showNewChatDialog, setShowNewChatDialog] = useState(false);
   const [selectedNGO, setSelectedNGO] = useState(null);
+  const [documentRequests, setDocumentRequests] = useState([]);
+  const [showDocumentsDialog, setShowDocumentsDialog] = useState(false);
 
   // Document request form
   const [requestForm, setRequestForm] = useState({
@@ -38,6 +41,26 @@ export default function CorporateChatPage({ corporate, user, ngos }) {
       socketManager.disconnect();
     };
   }, [user.id, corporate.companyName]);
+
+  // Load document requests for this corporate
+  useEffect(() => {
+    const loadDocumentRequests = async () => {
+      try {
+        const response = await fetch(`/api/documents/requests?corporateId=${corporate.id}`);
+        const data = await response.json();
+        if (data.requests) {
+          setDocumentRequests(data.requests);
+        }
+      } catch (error) {
+        console.error('Error loading document requests:', error);
+      }
+    };
+
+    loadDocumentRequests();
+    // Poll every 30 seconds for updates
+    const interval = setInterval(loadDocumentRequests, 30000);
+    return () => clearInterval(interval);
+  }, [corporate.id]);
 
   // Load chat rooms
   useEffect(() => {
@@ -66,8 +89,18 @@ export default function CorporateChatPage({ corporate, user, ngos }) {
 
   // Listen for document uploads
   useEffect(() => {
-    const handleDocumentUploaded = (data) => {
-      alert(`${data.ngoName} uploaded: ${data.fileName}`);
+    const handleDocumentUploaded = async (data) => {
+      // Refresh document requests to show new uploads
+      try {
+        const response = await fetch(`/api/documents/requests?corporateId=${corporate.id}`);
+        const result = await response.json();
+        if (result.requests) {
+          setDocumentRequests(result.requests);
+        }
+      } catch (error) {
+        console.error('Error refreshing document requests:', error);
+      }
+      alert(`📄 ${data.ngoName} uploaded: ${data.fileName}`);
     };
 
     socketManager.on('document_uploaded_notification', handleDocumentUploaded);
@@ -75,7 +108,7 @@ export default function CorporateChatPage({ corporate, user, ngos }) {
     return () => {
       socketManager.off('document_uploaded_notification', handleDocumentUploaded);
     };
-  }, []);
+  }, [corporate.id]);
 
   // Start new chat with NGO
   const handleStartChat = async (ngo) => {
@@ -194,6 +227,19 @@ export default function CorporateChatPage({ corporate, user, ngos }) {
             <p className="text-slate-600">Connect with NGOs, request documents, and track partnerships</p>
           </div>
           <div className="flex items-center gap-3">
+            <Button
+              onClick={() => setShowDocumentsDialog(true)}
+              variant="outline"
+              className="gap-2 relative"
+            >
+              <FileText className="h-4 w-4" />
+              Document Requests
+              {documentRequests.filter(r => r.status === 'UPLOADED').length > 0 && (
+                <Badge className="absolute -top-2 -right-2 bg-green-500 text-white text-xs h-5 w-5 flex items-center justify-center p-0 rounded-full">
+                  {documentRequests.filter(r => r.status === 'UPLOADED').length}
+                </Badge>
+              )}
+            </Button>
             <Button
               onClick={() => setShowNewChatDialog(true)}
               className="bg-blue-600 hover:bg-blue-700 gap-2"
@@ -435,6 +481,140 @@ export default function CorporateChatPage({ corporate, user, ngos }) {
                 Send Request
               </Button>
             </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* View Uploaded Documents Dialog */}
+      <Dialog open={showDocumentsDialog} onOpenChange={setShowDocumentsDialog}>
+        <DialogContent className="max-w-3xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Document Requests & Uploads</DialogTitle>
+            <DialogDescription>
+              Track your document requests and view uploaded files from NGOs
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4">
+            {documentRequests.length === 0 ? (
+              <div className="text-center py-8">
+                <FileText className="h-12 w-12 text-slate-300 mx-auto mb-3" />
+                <p className="text-slate-500">No document requests yet</p>
+                <p className="text-xs text-slate-400 mt-1">
+                  Request documents from NGOs through the chat interface
+                </p>
+              </div>
+            ) : (
+              <>
+                {/* Uploaded Documents Section */}
+                {documentRequests.filter(r => r.status === 'UPLOADED' || r.status === 'VERIFIED').length > 0 && (
+                  <div className="mb-6">
+                    <h3 className="text-sm font-semibold text-green-700 mb-3 flex items-center gap-2">
+                      <FileCheck className="h-4 w-4" />
+                      Uploaded Documents ({documentRequests.filter(r => r.status === 'UPLOADED' || r.status === 'VERIFIED').length})
+                    </h3>
+                    <div className="space-y-2">
+                      {documentRequests.filter(r => r.status === 'UPLOADED' || r.status === 'VERIFIED').map(req => (
+                        <div key={req.id} className="bg-green-50 border border-green-200 rounded-lg p-4 flex items-center justify-between">
+                          <div>
+                            <div className="flex items-center gap-2 mb-1">
+                              <span className="font-medium text-slate-900">{req.docName}</span>
+                              <Badge className={`text-xs ${req.status === 'VERIFIED' ? 'bg-green-100 text-green-700' : 'bg-blue-100 text-blue-700'}`}>
+                                {req.status === 'VERIFIED' ? (
+                                  <><CheckCircle2 className="h-3 w-3 mr-1" /> Verified</>
+                                ) : (
+                                  <><FileCheck className="h-3 w-3 mr-1" /> Uploaded</>
+                                )}
+                              </Badge>
+                            </div>
+                            <p className="text-xs text-slate-600">From: {req.ngo?.orgName}</p>
+                            {req.uploadedAt && (
+                              <p className="text-xs text-slate-400 mt-1">
+                                Uploaded: {new Date(req.uploadedAt).toLocaleDateString('en-IN', {
+                                  day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit'
+                                })}
+                              </p>
+                            )}
+                          </div>
+                          {req.fileUrl && (
+                            <Button size="sm" variant="outline" asChild className="gap-2">
+                              <a href={req.fileUrl} target="_blank" rel="noopener noreferrer">
+                                <Eye className="h-4 w-4" />
+                                View Document
+                              </a>
+                            </Button>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Pending Requests Section */}
+                {documentRequests.filter(r => r.status === 'PENDING').length > 0 && (
+                  <div>
+                    <h3 className="text-sm font-semibold text-amber-700 mb-3 flex items-center gap-2">
+                      <Clock className="h-4 w-4" />
+                      Pending Requests ({documentRequests.filter(r => r.status === 'PENDING').length})
+                    </h3>
+                    <div className="space-y-2">
+                      {documentRequests.filter(r => r.status === 'PENDING').map(req => (
+                        <div key={req.id} className="bg-amber-50 border border-amber-200 rounded-lg p-4">
+                          <div className="flex items-center gap-2 mb-1">
+                            <span className="font-medium text-slate-900">{req.docName}</span>
+                            <Badge className="bg-amber-100 text-amber-700 text-xs">
+                              <Clock className="h-3 w-3 mr-1" /> Pending
+                            </Badge>
+                            <Badge variant="outline" className={`text-xs ${
+                              req.priority === 'HIGH' ? 'border-red-300 text-red-600' :
+                              req.priority === 'MEDIUM' ? 'border-amber-300 text-amber-600' :
+                              'border-slate-300 text-slate-600'
+                            }`}>
+                              {req.priority}
+                            </Badge>
+                          </div>
+                          <p className="text-xs text-slate-600">Requested from: {req.ngo?.orgName}</p>
+                          {req.description && (
+                            <p className="text-xs text-slate-500 mt-1 italic">"{req.description}"</p>
+                          )}
+                          <p className="text-xs text-slate-400 mt-2">
+                            Requested: {new Date(req.requestedAt).toLocaleDateString('en-IN', {
+                              day: 'numeric', month: 'short', year: 'numeric'
+                            })}
+                          </p>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Rejected Requests Section */}
+                {documentRequests.filter(r => r.status === 'REJECTED').length > 0 && (
+                  <div>
+                    <h3 className="text-sm font-semibold text-red-700 mb-3 flex items-center gap-2">
+                      <AlertCircle className="h-4 w-4" />
+                      Rejected ({documentRequests.filter(r => r.status === 'REJECTED').length})
+                    </h3>
+                    <div className="space-y-2">
+                      {documentRequests.filter(r => r.status === 'REJECTED').map(req => (
+                        <div key={req.id} className="bg-red-50 border border-red-200 rounded-lg p-4">
+                          <div className="flex items-center gap-2 mb-1">
+                            <span className="font-medium text-slate-900">{req.docName}</span>
+                            <Badge className="bg-red-100 text-red-700 text-xs">
+                              <AlertCircle className="h-3 w-3 mr-1" /> Rejected
+                            </Badge>
+                          </div>
+                          <p className="text-xs text-slate-600">From: {req.ngo?.orgName}</p>
+                          {req.remarks && (
+                            <p className="text-xs text-red-600 mt-1">Reason: {req.remarks}</p>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </>
+            )}
           </div>
         </DialogContent>
       </Dialog>

@@ -1,4 +1,5 @@
 import prisma from "@/lib/prisma";
+import { cookies } from "next/headers";
 import Link from 'next/link';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -6,16 +7,24 @@ import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Lock, Unlock, MapPin, ArrowRight, AlertTriangle, Target, TrendingUp, Calendar } from "lucide-react";
 
-const getMockUserId = async () => {
-    const ngo = await prisma.nGO.findFirst({
-        include: { user: true }
-    });
-    return ngo?.userId;
+// Get actual logged-in user ID from session cookie
+const getSessionUserId = async () => {
+    const cookieStore = await cookies();
+    const token = cookieStore.get('token')?.value;
+    if (token) {
+        try {
+            const session = JSON.parse(token);
+            return session.id;
+        } catch (e) {
+            console.error('Error parsing session token:', e);
+        }
+    }
+    return null;
 };
 
 export default async function MyProjectsPage() {
-    const userId = await getMockUserId();
-    if (!userId) return <div>User not found</div>;
+    const userId = await getSessionUserId();
+    if (!userId) return <div>User not found. Please log in.</div>;
 
     const ngo = await prisma.nGO.findUnique({
         where: { userId },

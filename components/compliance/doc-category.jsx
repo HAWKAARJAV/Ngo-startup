@@ -4,7 +4,7 @@ import { AccordionContent, AccordionItem, AccordionTrigger } from "@/components/
 import { Badge } from "@/components/ui/badge";
 import DocRow from "./doc-row";
 
-export default function DocCategory({ categoryKey, title, documents, projectDocs, projectId, isCorporate, isNgo }) {
+export default function DocCategory({ categoryKey, title, documents, projectDocs, projectId, isCorporate, isNgo, corporateId, ngoId }) {
     // Determine status summary for this category
     const relevantDocs = projectDocs.filter(d => d.category === categoryKey);
     const totalDocs = documents.length;
@@ -47,6 +47,8 @@ export default function DocCategory({ categoryKey, title, documents, projectDocs
                             docData={docData}
                             isCorporate={isCorporate}
                             isNgo={isNgo}
+                            corporateId={corporateId}
+                            ngoId={ngoId}
                         />
                     );
                 })}

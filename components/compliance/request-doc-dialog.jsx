@@ -14,7 +14,7 @@ import {
 import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { Bell, CheckCircle2, FileWarning } from "lucide-react";
+import { Bell, CheckCircle2, FileWarning, Loader2 } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 export default function RequestDocDialog({
@@ -23,26 +23,71 @@ export default function RequestDocDialog({
     defaultCategory = "",
     defaultDoc = "",
     categoryTitle = "",
-    trigger
+    trigger,
+    corporateId,
+    ngoId,
+    projectId = null,
+    onSuccess
 }) {
     const [open, setOpen] = useState(false);
     const [selectedCategory, setSelectedCategory] = useState(defaultCategory);
     const [selectedDoc, setSelectedDoc] = useState(defaultDoc);
     const [message, setMessage] = useState("");
     const [isSent, setIsSent] = useState(false);
+    const [isLoading, setIsLoading] = useState(false);
+    const [error, setError] = useState(null);
 
-    const handleSend = () => {
-        // Here we would typically call a server action to send the notification
-        setIsSent(true);
-        setTimeout(() => {
-            setOpen(false);
-            setIsSent(false); // Reset for next time
-            if (!fixedMode) {
-                setSelectedCategory("");
-                setSelectedDoc("");
+    const handleSend = async () => {
+        if (!corporateId || !ngoId) {
+            setError("Missing corporate or NGO information");
+            return;
+        }
+
+        setIsLoading(true);
+        setError(null);
+
+        try {
+            const docName = fixedMode ? defaultDoc : selectedDoc;
+            const requestType = selectedCategory || defaultCategory || 'COMPLIANCE_DOC';
+
+            const res = await fetch('/api/documents/requests', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    corporateId,
+                    ngoId,
+                    projectId,
+                    requestType,
+                    docName,
+                    description: message,
+                    priority: 'HIGH'
+                })
+            });
+
+            const data = await res.json();
+
+            if (!res.ok) {
+                throw new Error(data.error || 'Failed to send request');
             }
-            setMessage("");
-        }, 2000);
+
+            setIsSent(true);
+            if (onSuccess) onSuccess(data);
+            
+            setTimeout(() => {
+                setOpen(false);
+                setIsSent(false);
+                if (!fixedMode) {
+                    setSelectedCategory("");
+                    setSelectedDoc("");
+                }
+                setMessage("");
+            }, 2000);
+        } catch (err) {
+            console.error('Error sending document request:', err);
+            setError(err.message);
+        } finally {
+            setIsLoading(false);
+        }
     };
 
     const currentCategory = categories.find(c => c.key === selectedCategory);
@@ -130,6 +175,13 @@ export default function RequestDocDialog({
                                 Repeated requests for the same document might affect the NGO's compliance score.
                             </AlertDescription>
                         </Alert>
+
+                        {error && (
+                            <Alert className="bg-red-50 border-red-200 text-red-800">
+                                <AlertTitle className="text-xs font-bold">Error</AlertTitle>
+                                <AlertDescription className="text-xs">{error}</AlertDescription>
+                            </Alert>
+                        )}
                     </div>
                 )}
 
@@ -138,10 +190,17 @@ export default function RequestDocDialog({
                         <Button variant="outline" onClick={() => setOpen(false)}>Cancel</Button>
                         <Button
                             onClick={handleSend}
-                            disabled={!selectedCategory || !selectedDoc || ((selectedDoc === 'Request Additional Document (Not Listed Above)' || defaultDoc === 'Request Additional Document (Not Listed Above)') && !message.trim())}
+                            disabled={isLoading || !selectedCategory || !selectedDoc || ((selectedDoc === 'Request Additional Document (Not Listed Above)' || defaultDoc === 'Request Additional Document (Not Listed Above)') && !message.trim())}
                             className="bg-amber-600 hover:bg-amber-700"
                         >
-                            Send Request
+                            {isLoading ? (
+                                <>
+                                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                    Sending...
+                                </>
+                            ) : (
+                                'Send Request'
+                            )}
                         </Button>
                     </DialogFooter>
                 )}

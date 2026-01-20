@@ -1,5 +1,6 @@
 import prisma from "@/lib/prisma";
 import { notFound } from "next/navigation";
+import { cookies } from "next/headers";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -12,6 +13,24 @@ import Link from "next/link";
 import { getProjectComplianceDocs } from "@/app/actions/compliance-actions";
 
 export const dynamic = 'force-dynamic';
+
+// Get actual logged-in user's corporate profile
+const getSessionCorporate = async () => {
+    const cookieStore = await cookies();
+    const token = cookieStore.get('token')?.value;
+    if (token) {
+        try {
+            const session = JSON.parse(token);
+            const corporate = await prisma.corporate.findUnique({
+                where: { userId: session.id }
+            });
+            return corporate;
+        } catch (e) {
+            console.error('Error parsing session token:', e);
+        }
+    }
+    return null;
+};
 
 export default async function ProjectDetailsPage({ params }) {
     const { id } = await params;
@@ -35,8 +54,10 @@ export default async function ProjectDetailsPage({ params }) {
     const complianceRes = await getProjectComplianceDocs(id);
     const complianceDocs = complianceRes.success ? complianceRes.data : [];
 
+    // Get logged-in corporate user
+    const corporate = await getSessionCorporate();
+    
     // Get chat room if exists
-    const corporate = await prisma.corporate.findFirst();
     const chatRoom = corporate ? await prisma.chatRoom.findFirst({
         where: {
             corporateId: corporate.id,
@@ -195,6 +216,8 @@ export default async function ProjectDetailsPage({ params }) {
                             projectDocs={complianceDocs}
                             isCorporate={isCorporate}
                             isNgo={isNgo}
+                            corporateId={corporate?.id}
+                            ngoId={project.ngoId}
                         />
                     </div>
                 </div>

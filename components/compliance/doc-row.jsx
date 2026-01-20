@@ -13,7 +13,7 @@ import { useToast } from "@/components/ui/use-toast";
 import { Loader2 } from "lucide-react";
 import RequestDocDialog from "./request-doc-dialog";
 
-export default function DocRow({ projectId, category, categoryTitle, docName, docData, isCorporate, isNgo }) {
+export default function DocRow({ projectId, category, categoryTitle, docName, docData, isCorporate, isNgo, corporateId, ngoId }) {
     const [isUploading, setIsUploading] = useState(false);
     const [selectedFile, setSelectedFile] = useState(null);
     const [isVerifying, setIsVerifying] = useState(false);
@@ -176,12 +176,21 @@ export default function DocRow({ projectId, category, categoryTitle, docName, do
                             defaultCategory={category}
                             defaultDoc={docName}
                             categoryTitle={categoryTitle}
+                            corporateId={corporateId}
+                            ngoId={ngoId}
+                            projectId={projectId}
                             trigger={
                                 <Button size="sm" variant="ghost" className="text-amber-600 hover:text-amber-700 hover:bg-amber-50 gap-1 h-8 px-2">
                                     <BellRing className="h-4 w-4" />
                                     <span className="hidden sm:inline">Request</span>
                                 </Button>
                             }
+                            onSuccess={() => {
+                                toast({
+                                    title: "Request Sent",
+                                    description: "NGO has been notified to upload this document",
+                                });
+                            }}
                         />
                     )}
 

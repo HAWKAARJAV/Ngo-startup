@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useId } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import {
@@ -35,6 +35,13 @@ function getCookie(name) {
 export default function NgoDashboardLayout({ children }) {
     const pathname = usePathname();
     const [userData, setUserData] = useState(null);
+    const [isMounted, setIsMounted] = useState(false);
+    const sheetId = useId();
+    
+    // Hydration fix - only render client-specific content after mount
+    useEffect(() => {
+        setIsMounted(true);
+    }, []);
     
     // Get user data from cookie and initialize socket
     useEffect(() => {
@@ -124,18 +131,24 @@ export default function NgoDashboardLayout({ children }) {
                 <SidebarContent />
             </aside>
 
-            {/* Mobile Sidebar */}
+            {/* Mobile Sidebar - Only render after hydration */}
             <div className="md:hidden fixed top-4 left-4 z-50">
-                <Sheet>
-                    <SheetTrigger asChild>
-                        <Button size="icon" variant="outline" className="bg-slate-900 border-slate-700 text-white">
-                            <Menu className="h-5 w-5" />
-                        </Button>
-                    </SheetTrigger>
-                    <SheetContent side="left" className="p-0 border-r-slate-800 bg-slate-900 w-64 text-white">
-                        <SidebarContent />
-                    </SheetContent>
-                </Sheet>
+                {isMounted ? (
+                    <Sheet>
+                        <SheetTrigger asChild>
+                            <Button size="icon" variant="outline" className="bg-slate-900 border-slate-700 text-white">
+                                <Menu className="h-5 w-5" />
+                            </Button>
+                        </SheetTrigger>
+                        <SheetContent side="left" className="p-0 border-r-slate-800 bg-slate-900 w-64 text-white">
+                            <SidebarContent />
+                        </SheetContent>
+                    </Sheet>
+                ) : (
+                    <Button size="icon" variant="outline" className="bg-slate-900 border-slate-700 text-white">
+                        <Menu className="h-5 w-5" />
+                    </Button>
+                )}
             </div>
 
             {/* Main Content Area */}

@@ -1,21 +1,32 @@
 import prisma from "@/lib/prisma";
+import { cookies } from "next/headers";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Upload, FileCheck, AlertTriangle, Clock, History } from "lucide-react";
+import { Upload, FileCheck, AlertTriangle, Clock, History, Bell, Building2, ArrowRight } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
+import Link from "next/link";
+import DocumentRequestUploader from "@/components/compliance/document-request-uploader";
+import ComplianceDocCards from "@/components/compliance/compliance-doc-cards";
 
-// Mock User ID retrieval
-const getMockUserId = async () => {
-    const ngo = await prisma.nGO.findFirst({
-        include: { user: true }
-    });
-    return ngo?.userId;
+// Get actual logged-in user ID from session cookie
+const getSessionUserId = async () => {
+    const cookieStore = await cookies();
+    const token = cookieStore.get('token')?.value;
+    if (token) {
+        try {
+            const session = JSON.parse(token);
+            return session.id;
+        } catch (e) {
+            console.error('Error parsing session token:', e);
+        }
+    }
+    return null;
 };
 
 export default async function ComplianceOpsPage() {
-    const userId = await getMockUserId();
-    if (!userId) return <div>User not found</div>;
+    const userId = await getSessionUserId();
+    if (!userId) return <div>User not found. Please log in.</div>;
 
     const ngo = await prisma.nGO.findUnique({
         where: { userId },
@@ -23,6 +34,38 @@ export default async function ComplianceOpsPage() {
     });
 
     if (!ngo) return <div>NGO Profile not found</div>;
+
+    // Fetch document requests for this NGO
+    const documentRequests = await prisma.documentRequest.findMany({
+        where: { ngoId: ngo.id },
+        orderBy: { requestedAt: 'desc' }
+    });
+
+    // Enrich with corporate names
+    const enrichedRequests = await Promise.all(
+        documentRequests.map(async (req) => {
+            const corporate = await prisma.corporate.findUnique({
+                where: { id: req.corporateId },
+                select: { companyName: true }
+            });
+            return { ...req, corporateName: corporate?.companyName || 'Unknown' };
+        })
+    );
+
+    const pendingRequests = enrichedRequests.filter(r => r.status === 'PENDING');
+
+    // Serialize dates for client component
+    const serializedRequests = enrichedRequests.map(req => ({
+        ...req,
+        requestedAt: req.requestedAt?.toISOString?.() || req.requestedAt,
+        uploadedAt: req.uploadedAt?.toISOString?.() || req.uploadedAt,
+    }));
+
+    // Serialize documents for client component
+    const serializedDocuments = ngo.documents.map(doc => ({
+        ...doc,
+        uploadedAt: doc.uploadedAt?.toISOString?.() || doc.uploadedAt,
+    }));
 
     const docTypes = [
         { key: '12A', label: '12A Registration Certificate', validity: ngo.validity12A, verified: ngo.is12AVerified },
@@ -43,64 +86,15 @@ export default async function ComplianceOpsPage() {
                 </Button>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {docTypes.map((doc) => {
-                    const isExpired = doc.validity && new Date(doc.validity) < new Date();
-                    const isMissing = !doc.validity;
+            {/* Document Requests from Corporates - Interactive Uploader */}
+            <DocumentRequestUploader requests={serializedRequests} ngoId={ngo.id} />
 
-                    return (
-                        <Card key={doc.key} className={`border-l-4 shadow-sm ${doc.verified ? 'border-l-green-500' : 'border-l-amber-500'}`}>
-                            <CardHeader className="bg-slate-50/50 pb-3">
-                                <div className="flex justify-between items-start">
-                                    <div>
-                                        <CardTitle className="text-lg font-bold text-slate-800">{doc.label}</CardTitle>
-                                        <CardDescription className="text-xs font-mono text-slate-500 mt-1">DOC-ID: {doc.key}-{ngo.id.substring(0, 6)}</CardDescription>
-                                    </div>
-                                    {doc.verified ? (
-                                        <Badge className="bg-green-100 text-green-700 hover:bg-green-200 gap-1">
-                                            <FileCheck className="h-3 w-3" /> Verified
-                                        </Badge>
-                                    ) : (
-                                        <Badge className="bg-amber-100 text-amber-700 hover:bg-amber-200 gap-1">
-                                            <Clock className="h-3 w-3" /> Pending
-                                        </Badge>
-                                    )}
-                                </div>
-                            </CardHeader>
-                            <CardContent className="pt-4 space-y-4">
-
-                                {/* Status Banner */}
-                                {isMissing ? (
-                                    <div className="bg-red-50 text-red-700 text-sm p-3 rounded-md flex gap-2 items-center">
-                                        <AlertTriangle className="h-4 w-4" /> Document Missing. Upload immediately.
-                                    </div>
-                                ) : isExpired ? (
-                                    <div className="bg-red-50 text-red-700 text-sm p-3 rounded-md flex gap-2 items-center">
-                                        <AlertTriangle className="h-4 w-4" /> Expired on {new Date(doc.validity).toLocaleDateString('en-IN')}.
-                                    </div>
-                                ) : (
-                                    <div className="bg-green-50 text-green-700 text-sm p-3 rounded-md flex gap-2 items-center">
-                                        <FileCheck className="h-4 w-4" /> Valid until {new Date(doc.validity).toLocaleDateString('en-IN')}.
-                                    </div>
-                                )}
-
-                                <Separator />
-
-                                {/* Action Area */}
-                                <div className="flex justify-between items-center">
-                                    <div className="text-xs text-slate-500">
-                                        Last updated: {ngo.documents.find(d => d.docType === doc.key)?.status || 'Never'}
-                                    </div>
-                                    <Button size="sm" variant={isMissing || isExpired ? "default" : "secondary"}>
-                                        <Upload className="h-4 w-4 mr-2" />
-                                        {isMissing ? 'Upload New' : 'Renew'}
-                                    </Button>
-                                </div>
-                            </CardContent>
-                        </Card>
-                    );
-                })}
-            </div>
+            {/* Compliance Document Cards with Functional Upload */}
+            <ComplianceDocCards 
+                docTypes={docTypes} 
+                ngoId={ngo.id} 
+                documents={serializedDocuments} 
+            />
 
             {/* Upload History Table Stub */}
             <Card>

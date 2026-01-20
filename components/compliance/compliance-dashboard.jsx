@@ -76,7 +76,7 @@ const ALL_CATEGORIES = [
     }
 ];
 
-export default function ComplianceDashboard({ projectId, projectDocs = [], isCorporate = false, isNgo = false }) {
+export default function ComplianceDashboard({ projectId, projectDocs = [], isCorporate = false, isNgo = false, corporateId = null, ngoId = null }) {
     // Calculate Progress
     const totalRequired = ALL_CATEGORIES.reduce((acc, cat) => acc + cat.docs.length, 0);
     const approvedCount = projectDocs.filter(d => d.status === 'APPROVED').length;
@@ -133,6 +133,8 @@ export default function ComplianceDashboard({ projectId, projectDocs = [], isCor
                         projectId={projectId}
                         isCorporate={isCorporate}
                         isNgo={isNgo}
+                        corporateId={corporateId}
+                        ngoId={ngoId}
                     />
                 ))}
             </Accordion>

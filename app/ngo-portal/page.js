@@ -7,18 +7,26 @@ import { ShieldCheck, AlertTriangle, AlertCircle, ArrowRight, Wallet, Calendar, 
 import Link from 'next/link';
 import { Badge } from "@/components/ui/badge";
 import ActionInbox from "@/components/action-inbox";
+import { cookies } from "next/headers";
 
-// Mock User ID retrieval - In real app, get from session
-const getMockUserId = async () => {
-    const ngo = await prisma.nGO.findFirst({
-        include: { user: true }
-    });
-    return ngo?.userId;
+// Get actual logged-in user ID from session cookie
+const getSessionUserId = async () => {
+    const cookieStore = await cookies();
+    const token = cookieStore.get('token')?.value;
+    if (token) {
+        try {
+            const session = JSON.parse(token);
+            return session.id;
+        } catch (e) {
+            console.error('Error parsing session token:', e);
+        }
+    }
+    return null;
 };
 
 export default async function CommandCenterPage() {
-    // 1. Fetch Data
-    const userId = await getMockUserId();
+    // 1. Fetch Data - Get actual logged-in user's NGO
+    const userId = await getSessionUserId();
 
     if (!userId) {
         return <div className="p-10">No NGO accounts found. Please seed the database.</div>;
