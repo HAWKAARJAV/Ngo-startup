@@ -1,8 +1,34 @@
 import prisma from '@/lib/prisma';
 import { NextResponse } from 'next/server';
 
-export async function GET() {
+/**
+ * PROTECTED: Seed API endpoint
+ * This endpoint should NEVER be exposed in production without authentication
+ */
+export async function GET(request) {
+    // ===== PRODUCTION GUARD =====
+    // Block in production unless explicitly enabled
+    if (process.env.NODE_ENV === 'production' && process.env.ALLOW_SEED !== 'true') {
+        console.error('[Seed API] Blocked seed attempt in production');
+        return NextResponse.json(
+            { error: 'Seed endpoint is disabled in production' },
+            { status: 403 }
+        );
+    }
+
+    // Optional: Check for admin secret header in development
+    const seedSecret = request.headers.get('x-seed-secret');
+    if (process.env.SEED_SECRET && seedSecret !== process.env.SEED_SECRET) {
+        console.warn('[Seed API] Invalid or missing seed secret');
+        return NextResponse.json(
+            { error: 'Unauthorized: Invalid seed secret' },
+            { status: 401 }
+        );
+    }
+
     try {
+        console.log('[Seed API] Starting database seed...');
+        
         // 1. Create Admin
         const admin = await prisma.user.upsert({
             where: { email: 'admin@ngoconnect.in' },
@@ -110,9 +136,22 @@ export async function GET() {
             },
         })
 
-        return NextResponse.json({ success: true, message: 'Database seeded successfully' });
+        console.log('[Seed API] Database seeded successfully');
+        return NextResponse.json({ 
+            success: true, 
+            message: 'Database seeded successfully',
+            // Don't expose IDs in production
+            seeded: process.env.NODE_ENV !== 'production' ? {
+                adminEmail: admin.email,
+                corporateEmail: tataUser.email,
+                ngoEmails: [vidyaUser.email, goonjUser.email]
+            } : undefined
+        });
     } catch (error) {
-        console.error('Seed error', error);
-        return NextResponse.json({ error: error.message }, { status: 500 });
+        console.error('[Seed API] Seed error:', error);
+        return NextResponse.json(
+            { error: 'Seed failed', details: process.env.NODE_ENV !== 'production' ? error.message : undefined },
+            { status: 500 }
+        );
     }
 }

@@ -4,10 +4,41 @@ import prisma from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
 import { createClient } from '@supabase/supabase-js';
 
-const supabase = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
-);
+// Initialize Supabase client with validation
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+
+if (!supabaseUrl || !supabaseKey) {
+    console.warn('[Compliance] Supabase credentials not configured');
+}
+
+const supabase = supabaseUrl && supabaseKey 
+    ? createClient(supabaseUrl, supabaseKey)
+    : null;
+
+// ===== VALIDATION HELPERS =====
+const isValidUUID = (id) => {
+    if (typeof id !== 'string') return false;
+    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+    return uuidRegex.test(id);
+};
+
+const sanitizeString = (str, maxLength = 1000) => {
+    if (typeof str !== 'string') return '';
+    return str.trim().slice(0, maxLength).replace(/[<>]/g, '');
+};
+
+// Allowed file types for uploads
+const ALLOWED_FILE_TYPES = [
+    'application/pdf',
+    'image/jpeg',
+    'image/jpg',
+    'image/png',
+    'image/gif',
+    'image/webp'
+];
+
+const MAX_FILE_SIZE = 2 * 1024 * 1024; // 2MB
 
 // NGO Compliance Documents (12A, 80G, FCRA, etc.)
 export async function uploadNGOComplianceDocument(formData) {
@@ -15,13 +46,39 @@ export async function uploadNGOComplianceDocument(formData) {
     const docType = formData.get("docType") // '12A', '80G', 'FCRA', etc.
     const file = formData.get("file")
 
+    // ===== INPUT VALIDATION =====
     if (!ngoId || !docType || !file) {
-        return { error: "Missing required fields" }
+        return { error: "Missing required fields: ngoId, docType, file" }
+    }
+
+    if (!isValidUUID(ngoId)) {
+        return { error: "Invalid ngoId format" }
+    }
+
+    // Whitelist allowed document types
+    const allowedDocTypes = ['12A', '80G', 'FCRA', 'PAN', 'AUDIT_REPORT', 'REGISTRATION', 'CSR1', 'OTHER'];
+    if (!allowedDocTypes.includes(docType)) {
+        return { error: "Invalid document type" }
+    }
+
+    // Validate file
+    if (file.size > MAX_FILE_SIZE) {
+        return { error: `File size exceeds ${MAX_FILE_SIZE / 1024 / 1024}MB limit` }
+    }
+
+    if (!ALLOWED_FILE_TYPES.includes(file.type)) {
+        return { error: "Invalid file type. Allowed: PDF, JPEG, PNG, GIF, WebP" }
     }
 
     try {
+        // Verify NGO exists
+        const ngo = await prisma.nGO.findUnique({ where: { id: ngoId } });
+        if (!ngo) {
+            return { error: "NGO not found" }
+        }
+
         // In a real app, upload to cloud storage
-        const mockFileUrl = `https://storage.example.com/compliance/${file.name}`
+        const mockFileUrl = `https://storage.example.com/compliance/${sanitizeString(file.name, 200)}`
         
         // Create or update compliance document
         await prisma.complianceDoc.create({
@@ -41,7 +98,7 @@ export async function uploadNGOComplianceDocument(formData) {
                 action: "UPLOAD",
                 actorId: ngoId, // In real app, get from session
                 metadata: JSON.stringify({ 
-                    fileName: file.name,
+                    fileName: sanitizeString(file.name, 200),
                     fileSize: file.size,
                     uploadedAt: new Date().toISOString()
                 })
@@ -73,13 +130,19 @@ export async function uploadNGOComplianceDocument(formData) {
         
         return { success: true, message: `${docType} document uploaded successfully! Pending verification.` }
     } catch (error) {
-        console.error("Upload error:", error)
+        console.error("[Compliance] Upload error:", error)
         return { error: "Failed to upload document" }
     }
 }
 
 export async function getNGOComplianceDocuments(ngoId) {
     if (!ngoId) return []
+    
+    // Validate UUID
+    if (!isValidUUID(ngoId)) {
+        console.warn('[Compliance] Invalid ngoId format in getNGOComplianceDocuments');
+        return []
+    }
     
     try {
         const documents = await prisma.complianceDoc.findMany({
@@ -89,21 +152,30 @@ export async function getNGOComplianceDocuments(ngoId) {
         
         return documents
     } catch (error) {
-        console.error("Fetch error:", error)
+        console.error("[Compliance] Fetch error:", error)
         return []
     }
 }
 
 // Project Compliance Documents (existing functions)
 export async function getProjectComplianceDocs(projectId) {
+    // ===== INPUT VALIDATION =====
+    if (!projectId) {
+        return { success: false, error: "projectId is required" };
+    }
+    
+    if (!isValidUUID(projectId)) {
+        return { success: false, error: "Invalid projectId format" };
+    }
+
     try {
         const docs = await prisma.projectComplianceDoc.findMany({
             where: { projectId },
-            orderBy: { lastUpdated: 'desc' } // or whatever order makes sense
+            orderBy: { lastUpdated: 'desc' }
         });
         return { success: true, data: docs };
     } catch (error) {
-        console.error("Error fetching compliance docs:", error);
+        console.error("[Compliance] Error fetching compliance docs:", error);
         return { success: false, error: "Failed to fetch documents" };
     }
 }
@@ -116,29 +188,30 @@ export async function uploadComplianceDocWithFile(formData) {
         const docName = formData.get('docName');
         const file = formData.get('file');
 
-        console.log("uploadComplianceDocWithFile called:", { projectId, category, docName, fileName: file?.name });
+        console.log("[Compliance] uploadComplianceDocWithFile called:", { projectId, category, docName, fileName: file?.name });
 
+        // ===== INPUT VALIDATION =====
         if (!projectId || !category || !docName || !file) {
-            return { success: false, error: "Missing required fields" };
+            return { success: false, error: "Missing required fields: projectId, category, docName, file" };
         }
 
-        // Validate file size (2MB max)
-        const maxSize = 2 * 1024 * 1024; // 2MB in bytes
-        if (file.size > maxSize) {
-            return { success: false, error: "File size exceeds 2MB limit" };
+        if (!isValidUUID(projectId)) {
+            return { success: false, error: "Invalid projectId format" };
+        }
+
+        // Validate file size
+        if (file.size > MAX_FILE_SIZE) {
+            return { success: false, error: `File size exceeds ${MAX_FILE_SIZE / 1024 / 1024}MB limit` };
         }
 
         // Validate file type
-        const allowedTypes = [
-            'application/pdf',
-            'image/jpeg',
-            'image/jpg',
-            'image/png',
-            'image/gif',
-            'image/webp'
-        ];
-        if (!allowedTypes.includes(file.type)) {
+        if (!ALLOWED_FILE_TYPES.includes(file.type)) {
             return { success: false, error: "Only PDF and image files (JPEG, PNG, GIF, WebP) are allowed" };
+        }
+
+        // Check Supabase client
+        if (!supabase) {
+            return { success: false, error: "Storage service not configured" };
         }
 
         // Get project and NGO details for tracking
@@ -155,9 +228,15 @@ export async function uploadComplianceDocWithFile(formData) {
             return { success: false, error: "Project not found" };
         }
 
+        // Sanitize inputs for file naming
+        const sanitizedOrgName = sanitizeString(project.ngo.orgName, 50).replace(/[^a-zA-Z0-9]/g, '_');
+        const sanitizedTitle = sanitizeString(project.title, 50).replace(/[^a-zA-Z0-9]/g, '_');
+        const sanitizedCategory = sanitizeString(category, 20);
+        const sanitizedDocName = sanitizeString(docName, 50).replace(/[^a-zA-Z0-9]/g, '_');
+
         // Upload to Supabase Storage
-        const fileExt = file.name.split('.').pop();
-        const fileName = `${project.ngo.orgName}_${project.title}_${category}_${docName}_${Date.now()}.${fileExt}`;
+        const fileExt = file.name.split('.').pop()?.toLowerCase() || 'pdf';
+        const fileName = `${sanitizedOrgName}_${sanitizedTitle}_${sanitizedCategory}_${sanitizedDocName}_${Date.now()}.${fileExt}`;
         const arrayBuffer = await file.arrayBuffer();
         const buffer = Buffer.from(arrayBuffer);
 
@@ -169,7 +248,7 @@ export async function uploadComplianceDocWithFile(formData) {
             });
 
         if (uploadError) {
-            console.error("Supabase upload error:", uploadError);
+            console.error("[Compliance] Supabase upload error:", uploadError);
             return { success: false, error: "Failed to upload file to storage" };
         }
 
@@ -178,7 +257,7 @@ export async function uploadComplianceDocWithFile(formData) {
             .from('ngo documents')
             .getPublicUrl(fileName);
 
-        console.log("File uploaded to Supabase:", publicUrl);
+        console.log("[Compliance] File uploaded to Supabase:", publicUrl);
 
         // Upsert compliance document
         const existingDoc = await prisma.projectComplianceDoc.findFirst({
@@ -268,18 +347,27 @@ export async function uploadComplianceDocWithFile(formData) {
         }
 
         revalidatePath(`/dashboard/projects/${projectId}`);
-        console.log("Upload successful!");
+        console.log("[Compliance] Upload successful!");
         return { success: true, url: publicUrl };
     } catch (error) {
-        console.error("Error uploading document:", error);
+        console.error("[Compliance] Error uploading document:", error);
         return { success: false, error: error.message || "Upload failed" };
     }
 }
 
 // Keep old function for backward compatibility
 export async function uploadComplianceDoc(projectId, category, docName, fileUrl) {
-    console.log("uploadComplianceDoc called with:", { projectId, category, docName, fileUrl });
+    console.log("[Compliance] uploadComplianceDoc called with:", { projectId, category, docName, fileUrl });
     
+    // ===== INPUT VALIDATION =====
+    if (!projectId || !category || !docName) {
+        return { success: false, error: "Missing required fields" };
+    }
+
+    if (!isValidUUID(projectId)) {
+        return { success: false, error: "Invalid projectId format" };
+    }
+
     try {
         // Get project and NGO details for tracking
         const project = await prisma.project.findUnique({
@@ -292,18 +380,23 @@ export async function uploadComplianceDoc(projectId, category, docName, fileUrl)
         });
 
         if (!project) {
-            console.error("Project not found:", projectId);
+            console.error("[Compliance] Project not found:", projectId);
             return { success: false, error: "Project not found" };
         }
 
-        console.log("Project found:", project.title);
+        console.log("[Compliance] Project found:", project.title);
+
+        // Sanitize inputs
+        const sanitizedCategory = sanitizeString(category, 50);
+        const sanitizedDocName = sanitizeString(docName, 200);
+        const sanitizedFileUrl = sanitizeString(fileUrl || '', 2000);
 
         // Upsert logic: if exists for this project + docName, update it. Else create.
         const existingDoc = await prisma.projectComplianceDoc.findFirst({
             where: {
                 projectId,
-                category,
-                docName
+                category: sanitizedCategory,
+                docName: sanitizedDocName
             }
         });
 
@@ -311,23 +404,23 @@ export async function uploadComplianceDoc(projectId, category, docName, fileUrl)
             await prisma.projectComplianceDoc.update({
                 where: { id: existingDoc.id },
                 data: {
-                    url: fileUrl,
+                    url: sanitizedFileUrl,
                     status: 'SUBMITTED',
                     lastUpdated: new Date()
                 }
             });
-            console.log("Updated existing doc:", existingDoc.id);
+            console.log("[Compliance] Updated existing doc:", existingDoc.id);
         } else {
             await prisma.projectComplianceDoc.create({
                 data: {
                     projectId,
-                    category,
-                    docName,
-                    url: fileUrl,
+                    category: sanitizedCategory,
+                    docName: sanitizedDocName,
+                    url: sanitizedFileUrl,
                     status: 'SUBMITTED'
                 }
             });
-            console.log("Created new compliance doc");
+            console.log("[Compliance] Created new compliance doc");
         }
 
         // Track upload in DocumentUpload table
@@ -337,48 +430,67 @@ export async function uploadComplianceDoc(projectId, category, docName, fileUrl)
                 ngoName: project.ngo.orgName,
                 projectId: projectId,
                 projectName: project.title,
-                documentType: `${category}_${docName}`,
-                fileName: docName,
-                fileUrl: fileUrl,
+                documentType: `${sanitizedCategory}_${sanitizedDocName}`,
+                fileName: sanitizedDocName,
+                fileUrl: sanitizedFileUrl,
                 uploadedBy: project.ngo.userId,
                 status: "SUBMITTED"
             }
         });
-        console.log("Created tracking record:", trackingRecord.id);
+        console.log("[Compliance] Created tracking record:", trackingRecord.id);
 
         revalidatePath(`/dashboard/projects/${projectId}`);
-        console.log("Upload successful!");
+        console.log("[Compliance] Upload successful!");
         return { success: true };
     } catch (error) {
-        console.error("Error uploading document:", error);
+        console.error("[Compliance] Error uploading document:", error);
         return { success: false, error: error.message || "Upload failed" };
     }
 }
 
 export async function verifyComplianceDoc(docId, status, userId, remarks = "") {
-    try {
-        await prisma.projectComplianceDoc.update({
-            where: { id: docId },
-            data: {
-                status,
-                verifiedBy: userId,
-                remarks
-            }
-        });
+    // ===== INPUT VALIDATION =====
+    if (!docId || !status || !userId) {
+        return { success: false, error: "Missing required fields: docId, status, userId" };
+    }
 
-        // We need to know project ID to revalidate
+    if (!isValidUUID(docId)) {
+        return { success: false, error: "Invalid docId format" };
+    }
+
+    // Whitelist allowed statuses
+    const allowedStatuses = ['PENDING', 'SUBMITTED', 'VERIFIED', 'REJECTED'];
+    if (!allowedStatuses.includes(status)) {
+        return { success: false, error: "Invalid status value" };
+    }
+
+    try {
+        // Verify document exists
         const doc = await prisma.projectComplianceDoc.findUnique({
             where: { id: docId },
             select: { projectId: true }
         });
 
-        if (doc) {
+        if (!doc) {
+            return { success: false, error: "Document not found" };
+        }
+
+        await prisma.projectComplianceDoc.update({
+            where: { id: docId },
+            data: {
+                status,
+                verifiedBy: userId,
+                remarks: sanitizeString(remarks, 500)
+            }
+        });
+
+        if (doc.projectId) {
             revalidatePath(`/dashboard/projects/${doc.projectId}`);
         }
 
         return { success: true };
     } catch (error) {
-        console.error("Error verifying document:", error);
+        console.error("[Compliance] Error verifying document:", error);
         return { success: false, error: "Verification failed" };
     }
 }

@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
+import { isValidUUID, sanitizeString } from "@/lib/security";
 
 // GET: Get tranche details
 export async function GET(request) {
@@ -9,6 +10,11 @@ export async function GET(request) {
         const trancheId = searchParams.get('trancheId');
 
         if (trancheId) {
+            // Validate UUID
+            if (!isValidUUID(trancheId)) {
+                return NextResponse.json({ error: "Invalid trancheId format" }, { status: 400 });
+            }
+            
             const tranche = await prisma.tranche.findUnique({
                 where: { id: trancheId },
                 include: {
@@ -17,10 +23,20 @@ export async function GET(request) {
                     }
                 }
             });
+            
+            if (!tranche) {
+                return NextResponse.json({ error: "Tranche not found" }, { status: 404 });
+            }
+            
             return NextResponse.json({ tranche });
         }
 
         if (projectId) {
+            // Validate UUID
+            if (!isValidUUID(projectId)) {
+                return NextResponse.json({ error: "Invalid projectId format" }, { status: 400 });
+            }
+            
             const tranches = await prisma.tranche.findMany({
                 where: { projectId },
                 orderBy: { status: 'asc' }
@@ -30,7 +46,7 @@ export async function GET(request) {
 
         return NextResponse.json({ error: "projectId or trancheId required" }, { status: 400 });
     } catch (error) {
-        console.error("Error fetching tranches:", error);
+        console.error("[Tranches API] Error fetching tranches:", error);
         return NextResponse.json({ error: "Failed to fetch tranches" }, { status: 500 });
     }
 }
@@ -43,6 +59,11 @@ export async function POST(request) {
 
         if (!trancheId) {
             return NextResponse.json({ error: "Tranche ID required" }, { status: 400 });
+        }
+
+        // Validate UUID
+        if (!isValidUUID(trancheId)) {
+            return NextResponse.json({ error: "Invalid trancheId format" }, { status: 400 });
         }
 
         const tranche = await prisma.tranche.findUnique({
@@ -58,17 +79,27 @@ export async function POST(request) {
             return NextResponse.json({ error: "Tranche not found" }, { status: 404 });
         }
 
+        // Prevent double release
         if (tranche.status === 'RELEASED' || tranche.status === 'DISBURSED') {
             return NextResponse.json({ error: "Tranche already released" }, { status: 400 });
         }
+
+        // Prevent release if already requested
+        if (tranche.releaseRequested) {
+            return NextResponse.json({ error: "Release already requested, pending approval" }, { status: 400 });
+        }
+
+        // Sanitize URLs if provided
+        const sanitizedProofUrl = proofDocUrl ? sanitizeString(proofDocUrl, 2000) : tranche.proofDocUrl;
+        const sanitizedGeoTag = geoTag ? sanitizeString(geoTag, 100) : tranche.geoTag;
 
         // Update tranche with release request
         const updatedTranche = await prisma.tranche.update({
             where: { id: trancheId },
             data: {
                 releaseRequested: true,
-                proofDocUrl: proofDocUrl || tranche.proofDocUrl,
-                geoTag: geoTag || tranche.geoTag
+                proofDocUrl: sanitizedProofUrl,
+                geoTag: sanitizedGeoTag
             }
         });
 
@@ -118,7 +149,7 @@ export async function POST(request) {
         });
 
     } catch (error) {
-        console.error("Error requesting tranche release:", error);
+        console.error("[Tranches API] Error requesting tranche release:", error);
         return NextResponse.json({ error: "Failed to submit release request" }, { status: 500 });
     }
 }
@@ -133,6 +164,12 @@ export async function PATCH(request) {
             return NextResponse.json({ error: "trancheId and action required" }, { status: 400 });
         }
 
+        // Validate UUID
+        if (!isValidUUID(trancheId)) {
+            return NextResponse.json({ error: "Invalid trancheId format" }, { status: 400 });
+        }
+
+        // Whitelist allowed actions
         if (!['APPROVE', 'REJECT', 'BLOCK'].includes(action)) {
             return NextResponse.json({ error: "Invalid action. Use APPROVE, REJECT, or BLOCK" }, { status: 400 });
         }
@@ -149,6 +186,14 @@ export async function PATCH(request) {
         if (!tranche) {
             return NextResponse.json({ error: "Tranche not found" }, { status: 404 });
         }
+
+        // Prevent approving already released tranche
+        if (action === 'APPROVE' && (tranche.status === 'RELEASED' || tranche.status === 'DISBURSED')) {
+            return NextResponse.json({ error: "Tranche already released" }, { status: 400 });
+        }
+
+        // Sanitize remarks
+        const sanitizedRemarks = remarks ? sanitizeString(remarks, 1000) : null;
 
         let updateData = {};
         let notificationType = '';
@@ -181,19 +226,19 @@ export async function PATCH(request) {
                 status: 'LOCKED',
                 releaseRequested: false,
                 isBlocked: true,
-                blockReason: remarks || 'Additional documentation required'
+                blockReason: sanitizedRemarks || 'Additional documentation required'
             };
             notificationType = 'TRANCHE_REJECTED';
             notificationTitle = 'Tranche Release Rejected';
-            notificationMessage = `Your release request for ₹${tranche.amount.toLocaleString()} was rejected. Reason: ${remarks || 'Please upload required documentation.'}`;
+            notificationMessage = `Your release request for ₹${tranche.amount.toLocaleString()} was rejected. Reason: ${sanitizedRemarks || 'Please upload required documentation.'}`;
         } else if (action === 'BLOCK') {
             updateData = {
                 isBlocked: true,
-                blockReason: remarks || 'Compliance issue detected'
+                blockReason: sanitizedRemarks || 'Compliance issue detected'
             };
             notificationType = 'TRANCHE_BLOCKED';
             notificationTitle = 'Tranche Blocked';
-            notificationMessage = `Tranche of ₹${tranche.amount.toLocaleString()} has been blocked. Reason: ${remarks || 'Compliance verification required.'}`;
+            notificationMessage = `Tranche of ₹${tranche.amount.toLocaleString()} has been blocked. Reason: ${sanitizedRemarks || 'Compliance verification required.'}`;
         }
 
         const updatedTranche = await prisma.tranche.update({
@@ -214,7 +259,7 @@ export async function PATCH(request) {
                     trancheId, 
                     projectId: tranche.projectId,
                     action,
-                    remarks 
+                    remarks: sanitizedRemarks 
                 })
             }
         });
@@ -229,7 +274,7 @@ export async function PATCH(request) {
                 metadata: JSON.stringify({
                     trancheId,
                     amount: tranche.amount,
-                    remarks,
+                    remarks: sanitizedRemarks,
                     previousStatus: tranche.status,
                     newStatus: updateData.status || tranche.status
                 })
@@ -243,7 +288,7 @@ export async function PATCH(request) {
         });
 
     } catch (error) {
-        console.error("Error processing tranche:", error);
+        console.error("[Tranches API] Error processing tranche:", error);
         return NextResponse.json({ error: "Failed to process tranche" }, { status: 500 });
     }
 }

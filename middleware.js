@@ -1,17 +1,51 @@
 import { NextResponse } from 'next/server'
 
+/**
+ * Security-hardened middleware
+ * Adds: Security headers, improved token validation, request logging
+ */
 export function middleware(request) {
     const path = request.nextUrl.pathname
+    const response = NextResponse.next()
 
-    // Define paths that are public
-    const isPublicPath = path === '/login' || path === '/register' || path === '/' || path.startsWith('/api/') || path.startsWith('/about') || path.startsWith('/contact') || path.startsWith('/stories') || path.startsWith('/live-needs')
+    // ===== SECURITY HEADERS (ADDITIVE) =====
+    // Prevent clickjacking
+    response.headers.set('X-Frame-Options', 'DENY')
+    // Prevent MIME type sniffing
+    response.headers.set('X-Content-Type-Options', 'nosniff')
+    // Enable XSS filter in browsers
+    response.headers.set('X-XSS-Protection', '1; mode=block')
+    // Referrer policy
+    response.headers.set('Referrer-Policy', 'strict-origin-when-cross-origin')
+    // Permissions policy (disable sensitive features)
+    response.headers.set('Permissions-Policy', 'camera=(), microphone=(), geolocation=(self)')
+
+    // ===== PUBLIC PATHS =====
+    const publicPaths = [
+        '/login',
+        '/register', 
+        '/',
+        '/about',
+        '/contact',
+        '/stories',
+        '/live-needs',
+        '/privacy',
+        '/terms'
+    ]
+    
+    const isPublicPath = publicPaths.some(p => path === p || path.startsWith(p + '/')) ||
+                         path.startsWith('/api/') ||
+                         path.startsWith('/_next/') ||
+                         path.includes('.') // Static files
 
     // Check for a session token
     const token = request.cookies.get('token')?.value || ''
 
     // If trying to access a protected path without a token, redirect to login
     if (!isPublicPath && !token) {
-        return NextResponse.redirect(new URL('/login', request.url))
+        const loginUrl = new URL('/login', request.url)
+        loginUrl.searchParams.set('redirect', path) // Preserve intended destination
+        return NextResponse.redirect(loginUrl)
     }
 
     // Role-based access control
@@ -19,6 +53,23 @@ export function middleware(request) {
         try {
             const sessionData = JSON.parse(token)
             const userRole = sessionData.role
+            
+            // Validate session has required fields
+            if (!sessionData.id || !sessionData.email || !userRole) {
+                console.warn('[Middleware] Invalid session structure, clearing cookie')
+                const logoutResponse = NextResponse.redirect(new URL('/login', request.url))
+                logoutResponse.cookies.delete('token')
+                return logoutResponse
+            }
+            
+            // Validate role is a known value
+            const validRoles = ['NGO', 'CORPORATE', 'ADMIN', 'DONOR']
+            if (!validRoles.includes(userRole)) {
+                console.warn('[Middleware] Unknown role detected:', userRole)
+                const logoutResponse = NextResponse.redirect(new URL('/login', request.url))
+                logoutResponse.cookies.delete('token')
+                return logoutResponse
+            }
             
             // Corporate users trying to access NGO portal → redirect to corporate dashboard
             if (path.startsWith('/ngo-portal') && userRole === 'CORPORATE') {
@@ -36,12 +87,15 @@ export function middleware(request) {
             }
             
         } catch (e) {
-            // Invalid token, let the page handle it
-            console.error('Middleware: Invalid token', e)
+            // Invalid token JSON, clear it and redirect to login
+            console.error('[Middleware] Token parse error:', e.message)
+            const logoutResponse = NextResponse.redirect(new URL('/login', request.url))
+            logoutResponse.cookies.delete('token')
+            return logoutResponse
         }
     }
 
-    return NextResponse.next()
+    return response
 }
 
 export const config = {

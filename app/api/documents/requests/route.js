@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
+import { isValidUUID, sanitizeString } from '@/lib/security';
 
 /**
  * GET: Fetch document requests
@@ -12,16 +13,36 @@ export async function GET(request) {
     const ngoId = searchParams.get('ngoId');
     const corporateId = searchParams.get('corporateId');
     const status = searchParams.get('status');
+    const limit = Math.min(parseInt(searchParams.get('limit') || '50'), 100);
 
     const whereClause = {};
     
-    if (ngoId) whereClause.ngoId = ngoId;
-    if (corporateId) whereClause.corporateId = corporateId;
-    if (status) whereClause.status = status;
+    // Validate UUIDs if provided
+    if (ngoId) {
+      if (!isValidUUID(ngoId)) {
+        return NextResponse.json({ error: 'Invalid ngoId format' }, { status: 400 });
+      }
+      whereClause.ngoId = ngoId;
+    }
+    if (corporateId) {
+      if (!isValidUUID(corporateId)) {
+        return NextResponse.json({ error: 'Invalid corporateId format' }, { status: 400 });
+      }
+      whereClause.corporateId = corporateId;
+    }
+    if (status) {
+      // Whitelist allowed statuses
+      const allowedStatuses = ['PENDING', 'UPLOADED', 'VERIFIED', 'REJECTED'];
+      if (!allowedStatuses.includes(status)) {
+        return NextResponse.json({ error: 'Invalid status value' }, { status: 400 });
+      }
+      whereClause.status = status;
+    }
 
     const requests = await prisma.documentRequest.findMany({
       where: whereClause,
-      orderBy: { requestedAt: 'desc' }
+      orderBy: { requestedAt: 'desc' },
+      take: limit
     });
 
     // Enrich with related data
@@ -51,7 +72,7 @@ export async function GET(request) {
     return NextResponse.json({ requests: enrichedRequests });
 
   } catch (error) {
-    console.error('Error fetching document requests:', error);
+    console.error('[Documents API] Error fetching document requests:', error);
     return NextResponse.json(
       { error: 'Failed to fetch document requests' },
       { status: 500 }
@@ -62,7 +83,7 @@ export async function GET(request) {
 export async function POST(request) {
   try {
     const body = await request.json();
-    console.log('Document request body received:', body);
+    console.log('[Documents API] Document request body received:', body);
     
     const { 
       corporateId, 
@@ -75,18 +96,66 @@ export async function POST(request) {
       deadline = null
     } = body;
 
-    console.log('Parsed values:', { corporateId, ngoId, projectId, requestType, docName, priority, deadline });
-
+    // ===== INPUT VALIDATION =====
     if (!corporateId || !ngoId || !requestType || !docName) {
-      console.log('Missing fields:', { corporateId: !!corporateId, ngoId: !!ngoId, requestType: !!requestType, docName: !!docName });
+      console.log('[Documents API] Missing fields:', { corporateId: !!corporateId, ngoId: !!ngoId, requestType: !!requestType, docName: !!docName });
       return NextResponse.json(
-        { error: 'Missing required fields', details: `corporateId: ${corporateId}, ngoId: ${ngoId}, requestType: ${requestType}, docName: ${docName}` },
+        { error: 'Missing required fields: corporateId, ngoId, requestType, docName' },
         { status: 400 }
       );
     }
 
-    // Parse deadline if provided
-    const deadlineDate = deadline ? new Date(deadline) : null;
+    // Validate UUIDs
+    if (!isValidUUID(corporateId)) {
+      return NextResponse.json({ error: 'Invalid corporateId format' }, { status: 400 });
+    }
+    if (!isValidUUID(ngoId)) {
+      return NextResponse.json({ error: 'Invalid ngoId format' }, { status: 400 });
+    }
+    if (projectId && !isValidUUID(projectId)) {
+      return NextResponse.json({ error: 'Invalid projectId format' }, { status: 400 });
+    }
+
+    // Whitelist allowed request types
+    const allowedTypes = ['COMPLIANCE_DOC', 'UTILIZATION_CERTIFICATE', 'IMPACT_REPORT', 'TRANCHE_EVIDENCE', 'OTHER'];
+    if (!allowedTypes.includes(requestType)) {
+      return NextResponse.json({ error: 'Invalid requestType' }, { status: 400 });
+    }
+
+    // Whitelist allowed priorities
+    const allowedPriorities = ['HIGH', 'MEDIUM', 'LOW'];
+    const validPriority = allowedPriorities.includes(priority) ? priority : 'MEDIUM';
+
+    // Sanitize string inputs
+    const sanitizedDocName = sanitizeString(docName, 200);
+    const sanitizedDescription = description ? sanitizeString(description, 1000) : null;
+
+    // Parse and validate deadline
+    let deadlineDate = null;
+    if (deadline) {
+      const parsedDate = new Date(deadline);
+      // Ensure deadline is in the future
+      if (isNaN(parsedDate.getTime())) {
+        return NextResponse.json({ error: 'Invalid deadline format' }, { status: 400 });
+      }
+      if (parsedDate < new Date()) {
+        return NextResponse.json({ error: 'Deadline must be in the future' }, { status: 400 });
+      }
+      deadlineDate = parsedDate;
+    }
+
+    // Verify corporate and NGO exist
+    const [corporate, ngo] = await Promise.all([
+      prisma.corporate.findUnique({ where: { id: corporateId }, include: { user: true } }),
+      prisma.nGO.findUnique({ where: { id: ngoId }, include: { user: true } })
+    ]);
+
+    if (!corporate) {
+      return NextResponse.json({ error: 'Corporate not found' }, { status: 404 });
+    }
+    if (!ngo) {
+      return NextResponse.json({ error: 'NGO not found' }, { status: 404 });
+    }
 
     // Create document request
     const docRequest = await prisma.documentRequest.create({
@@ -95,33 +164,13 @@ export async function POST(request) {
         ngoId,
         projectId: projectId || null,
         requestType,
-        docName,
-        description: description || null,
-        priority,
+        docName: sanitizedDocName,
+        description: sanitizedDescription,
+        priority: validPriority,
         status: 'PENDING',
         deadline: deadlineDate
       }
     });
-
-    // Get details for notification
-    const [corporate, ngo] = await Promise.all([
-      prisma.corporate.findUnique({
-        where: { id: corporateId },
-        include: { user: true }
-      }),
-      prisma.nGO.findUnique({
-        where: { id: ngoId },
-        include: { user: true }
-      })
-    ]);
-
-    if (!corporate || !ngo) {
-      // Document created but notification skipped due to missing data
-      return NextResponse.json({ 
-        request: docRequest,
-        warning: 'Document request created but notification could not be sent - missing corporate or NGO data'
-      });
-    }
 
     // Format deadline for notification
     const deadlineText = deadlineDate 
@@ -135,14 +184,14 @@ export async function POST(request) {
         userRole: 'NGO',
         type: 'DOCUMENT_REQUEST',
         title: 'New Document Request',
-        message: `${corporate.companyName} has requested: ${docName}${deadlineText}`,
+        message: `${corporate.companyName} has requested: ${sanitizedDocName}${deadlineText}`,
         link: `/ngo-portal/compliance`,
         metadata: JSON.stringify({
           requestId: docRequest.id,
           corporateId,
           corporateName: corporate.companyName,
-          docName,
-          priority,
+          docName: sanitizedDocName,
+          priority: validPriority,
           deadline: deadline
         })
       }
@@ -154,9 +203,9 @@ export async function POST(request) {
     });
 
   } catch (error) {
-    console.error('Error creating document request:', error);
+    console.error('[Documents API] Error creating document request:', error);
     return NextResponse.json(
-      { error: 'Failed to create document request', details: error.message },
+      { error: 'Failed to create document request' },
       { status: 500 }
     );
   }
