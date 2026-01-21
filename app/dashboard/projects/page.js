@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
-import { Building2, MapPin, ArrowRight } from "lucide-react";
+import { Building2, MapPin, ArrowRight, Sparkles } from "lucide-react";
 import Link from "next/link";
 
 export const dynamic = 'force-dynamic';
@@ -20,8 +20,8 @@ export default async function ProjectsListPage() {
         <div className="space-y-6">
             <div className="flex justify-between items-center">
                 <div>
-                    <h1 className="text-3xl font-bold text-slate-900">My Projects</h1>
-                    <p className="text-slate-500">Track progress and manage fund releases.</p>
+                    <h1 className="text-3xl font-bold text-slate-900">All Projects</h1>
+                    <p className="text-slate-500">Discover and fund NGO projects. Track progress and manage fund releases.</p>
                 </div>
                 {/* <Button>Add New Project</Button> */}
             </div>
@@ -29,15 +29,38 @@ export default async function ProjectsListPage() {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {projects.map(project => {
                     const percent = (project.raisedAmount / project.targetAmount) * 100;
+                    const isNew = project.isNewForCorporate === true;
 
                     return (
-                        <Card key={project.id} className="hover:shadow-md transition-all">
+                        <Card 
+                            key={project.id} 
+                            className={`hover:shadow-lg transition-all relative overflow-hidden ${
+                                isNew ? 'ring-2 ring-blue-400 ring-offset-2 shadow-lg shadow-blue-100' : ''
+                            }`}
+                        >
+                            {/* New Project Highlight Banner */}
+                            {isNew && (
+                                <div className="absolute top-0 right-0 z-10">
+                                    <div className="bg-gradient-to-r from-blue-500 to-blue-600 text-white text-xs font-bold px-3 py-1.5 rounded-bl-lg flex items-center gap-1 shadow-lg animate-pulse">
+                                        <Sparkles size={12} />
+                                        NEW
+                                    </div>
+                                </div>
+                            )}
+                            
                             <CardHeader className="pb-3">
                                 <div className="flex justify-between items-start mb-2">
-                                    <Badge variant={(project.raisedAmount >= project.targetAmount) ? "default" : "outline"}
-                                        className={(project.raisedAmount >= project.targetAmount) ? "bg-green-600" : ""}>
-                                        {(project.raisedAmount >= project.targetAmount) ? "Fully Funded" : "Active"}
-                                    </Badge>
+                                    <div className="flex gap-2 items-center">
+                                        <Badge variant={(project.raisedAmount >= project.targetAmount) ? "default" : "outline"}
+                                            className={(project.raisedAmount >= project.targetAmount) ? "bg-green-600" : ""}>
+                                            {(project.raisedAmount >= project.targetAmount) ? "Fully Funded" : "Active"}
+                                        </Badge>
+                                        {isNew && (
+                                            <Badge className="bg-blue-100 text-blue-700 border-blue-200 text-xs">
+                                                Just Added
+                                            </Badge>
+                                        )}
+                                    </div>
                                     <Badge variant="secondary" className="text-xs bg-slate-100">{project.sector}</Badge>
                                 </div>
                                 <CardTitle className="leading-tight text-lg">

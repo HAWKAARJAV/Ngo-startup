@@ -14,7 +14,8 @@ import {
     LogOut,
     MessageCircle,
     Inbox,
-    Bell
+    Bell,
+    Building2
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
@@ -73,6 +74,7 @@ export default function NgoDashboardLayout({ children }) {
     const navItems = [
         { href: '/ngo-portal', label: 'Command Center', icon: LayoutDashboard },
         { href: '/ngo-portal/projects', label: 'Projects', icon: Briefcase },
+        { href: '/ngo-portal/corporates', label: 'Corporate Funders', icon: Building2 },
         { href: '/ngo-portal/chat', label: 'Messages', icon: MessageCircle },
         { href: '/ngo-portal/compliance', label: 'Compliance Vault', icon: FileCheck },
         { href: '/ngo-portal/trust-score', label: 'Trust Score', icon: ShieldAlert },

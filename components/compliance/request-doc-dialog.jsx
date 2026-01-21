@@ -14,7 +14,8 @@ import {
 import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { Bell, CheckCircle2, FileWarning, Loader2 } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Bell, CheckCircle2, FileWarning, Loader2, Calendar } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 export default function RequestDocDialog({
@@ -33,13 +34,40 @@ export default function RequestDocDialog({
     const [selectedCategory, setSelectedCategory] = useState(defaultCategory);
     const [selectedDoc, setSelectedDoc] = useState(defaultDoc);
     const [message, setMessage] = useState("");
+    const [deadline, setDeadline] = useState("");
     const [isSent, setIsSent] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState(null);
 
+    // Get minimum date (today) for deadline picker
+    const getMinDate = () => {
+        const today = new Date();
+        today.setDate(today.getDate() + 1); // At least 1 day from now
+        return today.toISOString().split('T')[0];
+    };
+
+    // Get default deadline (7 days from now)
+    const getDefaultDeadline = () => {
+        const date = new Date();
+        date.setDate(date.getDate() + 7);
+        return date.toISOString().split('T')[0];
+    };
+
     const handleSend = async () => {
+        console.log('handleSend called with props:', { corporateId, ngoId, projectId, fixedMode, defaultCategory, defaultDoc });
+        
         if (!corporateId || !ngoId) {
-            setError("Missing corporate or NGO information");
+            setError(`Missing corporate or NGO information. corporateId: ${corporateId}, ngoId: ${ngoId}`);
+            return;
+        }
+
+        const docName = fixedMode ? defaultDoc : selectedDoc;
+        const requestType = fixedMode ? (defaultCategory || 'COMPLIANCE_DOC') : (selectedCategory || 'COMPLIANCE_DOC');
+
+        console.log('Computed values:', { docName, requestType });
+
+        if (!docName) {
+            setError("Please select a document");
             return;
         }
 
@@ -47,9 +75,8 @@ export default function RequestDocDialog({
         setError(null);
 
         try {
-            const docName = fixedMode ? defaultDoc : selectedDoc;
-            const requestType = selectedCategory || defaultCategory || 'COMPLIANCE_DOC';
-
+            console.log('Sending document request:', { corporateId, ngoId, projectId, requestType, docName, description: message, priority: 'HIGH', deadline: deadline || null });
+            
             const res = await fetch('/api/documents/requests', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -60,14 +87,16 @@ export default function RequestDocDialog({
                     requestType,
                     docName,
                     description: message,
-                    priority: 'HIGH'
+                    priority: 'HIGH',
+                    deadline: deadline || null
                 })
             });
 
             const data = await res.json();
+            console.log('API Response:', res.status, data);
 
             if (!res.ok) {
-                throw new Error(data.error || 'Failed to send request');
+                throw new Error(data.error || data.details || 'Failed to send request');
             }
 
             setIsSent(true);
@@ -81,6 +110,7 @@ export default function RequestDocDialog({
                     setSelectedDoc("");
                 }
                 setMessage("");
+                setDeadline("");
             }, 2000);
         } catch (err) {
             console.error('Error sending document request:', err);
@@ -168,6 +198,24 @@ export default function RequestDocDialog({
                             />
                         </div>
 
+                        <div className="space-y-2">
+                            <Label className="flex items-center gap-2">
+                                <Calendar className="h-4 w-4" />
+                                Submission Deadline
+                            </Label>
+                            <Input
+                                type="date"
+                                value={deadline}
+                                onChange={(e) => setDeadline(e.target.value)}
+                                min={getMinDate()}
+                                placeholder="Select deadline"
+                                className="w-full"
+                            />
+                            <p className="text-xs text-slate-500">
+                                NGO will receive a warning notification if the document is not submitted by this deadline.
+                            </p>
+                        </div>
+
                         <Alert className="bg-amber-50 border-amber-100 text-amber-800">
                             <FileWarning className="h-4 w-4 text-amber-600" />
                             <AlertTitle className="text-xs font-bold uppercase">Important</AlertTitle>
@@ -190,7 +238,7 @@ export default function RequestDocDialog({
                         <Button variant="outline" onClick={() => setOpen(false)}>Cancel</Button>
                         <Button
                             onClick={handleSend}
-                            disabled={isLoading || !selectedCategory || !selectedDoc || ((selectedDoc === 'Request Additional Document (Not Listed Above)' || defaultDoc === 'Request Additional Document (Not Listed Above)') && !message.trim())}
+                            disabled={isLoading || (!fixedMode && (!selectedCategory || !selectedDoc)) || ((selectedDoc === 'Request Additional Document (Not Listed Above)' || defaultDoc === 'Request Additional Document (Not Listed Above)') && !message.trim())}
                             className="bg-amber-600 hover:bg-amber-700"
                         >
                             {isLoading ? (

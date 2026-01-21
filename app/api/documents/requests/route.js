@@ -41,7 +41,9 @@ export async function GET(request) {
         return {
           ...req,
           corporate,
-          ngo
+          ngo,
+          corporateName: corporate?.companyName || 'Unknown Corporate',
+          ngoName: ngo?.orgName || 'Unknown NGO'
         };
       })
     );
@@ -59,6 +61,9 @@ export async function GET(request) {
 
 export async function POST(request) {
   try {
+    const body = await request.json();
+    console.log('Document request body received:', body);
+    
     const { 
       corporateId, 
       ngoId, 
@@ -66,27 +71,35 @@ export async function POST(request) {
       requestType, 
       docName, 
       description, 
-      priority = 'MEDIUM' 
-    } = await request.json();
+      priority = 'MEDIUM',
+      deadline = null
+    } = body;
+
+    console.log('Parsed values:', { corporateId, ngoId, projectId, requestType, docName, priority, deadline });
 
     if (!corporateId || !ngoId || !requestType || !docName) {
+      console.log('Missing fields:', { corporateId: !!corporateId, ngoId: !!ngoId, requestType: !!requestType, docName: !!docName });
       return NextResponse.json(
-        { error: 'Missing required fields' },
+        { error: 'Missing required fields', details: `corporateId: ${corporateId}, ngoId: ${ngoId}, requestType: ${requestType}, docName: ${docName}` },
         { status: 400 }
       );
     }
+
+    // Parse deadline if provided
+    const deadlineDate = deadline ? new Date(deadline) : null;
 
     // Create document request
     const docRequest = await prisma.documentRequest.create({
       data: {
         corporateId,
         ngoId,
-        projectId,
+        projectId: projectId || null,
         requestType,
         docName,
-        description,
+        description: description || null,
         priority,
-        status: 'PENDING'
+        status: 'PENDING',
+        deadline: deadlineDate
       }
     });
 
@@ -102,6 +115,19 @@ export async function POST(request) {
       })
     ]);
 
+    if (!corporate || !ngo) {
+      // Document created but notification skipped due to missing data
+      return NextResponse.json({ 
+        request: docRequest,
+        warning: 'Document request created but notification could not be sent - missing corporate or NGO data'
+      });
+    }
+
+    // Format deadline for notification
+    const deadlineText = deadlineDate 
+      ? ` (Deadline: ${deadlineDate.toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })})`
+      : '';
+
     // Create notification for NGO
     await prisma.notification.create({
       data: {
@@ -109,14 +135,15 @@ export async function POST(request) {
         userRole: 'NGO',
         type: 'DOCUMENT_REQUEST',
         title: 'New Document Request',
-        message: `${corporate.companyName} has requested: ${docName}`,
+        message: `${corporate.companyName} has requested: ${docName}${deadlineText}`,
         link: `/ngo-portal/compliance`,
         metadata: JSON.stringify({
           requestId: docRequest.id,
           corporateId,
           corporateName: corporate.companyName,
           docName,
-          priority
+          priority,
+          deadline: deadline
         })
       }
     });
@@ -129,7 +156,7 @@ export async function POST(request) {
   } catch (error) {
     console.error('Error creating document request:', error);
     return NextResponse.json(
-      { error: 'Failed to create document request' },
+      { error: 'Failed to create document request', details: error.message },
       { status: 500 }
     );
   }

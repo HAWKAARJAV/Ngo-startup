@@ -51,9 +51,11 @@ export default async function MyProjectsPage() {
                             Track milestones, upload evidence, and unlock funds.
                         </p>
                     </div>
-                    <Button className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 shadow-lg shadow-blue-500/30 transition-all duration-300 hover:shadow-xl hover:scale-105">
-                        Create New Project
-                    </Button>
+                    <Link href="/ngo-portal/projects/new">
+                        <Button className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 shadow-lg shadow-blue-500/30 transition-all duration-300 hover:shadow-xl hover:scale-105">
+                            Create New Project
+                        </Button>
+                    </Link>
                 </div>
 
                 {/* Stats Overview */}
@@ -221,9 +223,11 @@ export default async function MyProjectsPage() {
                             <p className="text-slate-500 mb-6 max-w-md mx-auto">
                                 Start your first project to receive funding and make an impact.
                             </p>
-                            <Button className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105">
-                                Create Your First Project
-                            </Button>
+                            <Link href="/ngo-portal/projects/new">
+                                <Button className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105">
+                                    Create Your First Project
+                                </Button>
+                            </Link>
                         </div>
                     )}
                 </div>

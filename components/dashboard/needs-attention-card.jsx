@@ -3,7 +3,7 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { CheckCircle2 } from "lucide-react"
+import { CheckCircle2, Sparkles } from "lucide-react"
 import confetti from "canvas-confetti"
 import { useState } from "react"
 import { approveTranche } from "@/app/actions/project-actions"
@@ -42,22 +42,35 @@ export default function NeedsAttentionCard({ initialProjects }) {
         <Card className="border-border shadow-sm">
             <CardHeader>
                 <CardTitle>Needs Your Attention</CardTitle>
-                <CardDescription>Tranche disbursals pending approval or verification.</CardDescription>
+                <CardDescription>New projects and tranche disbursals pending approval.</CardDescription>
             </CardHeader>
             <CardContent>
                 <div className="space-y-4">
                     {projects.map((project) => {
                         const isVerified = project.status === 'VERIFIED' || project.raisedAmount >= project.targetAmount
+                        const isNew = project.isNewForCorporate === true
 
                         return (
-                            <div key={project.id} className="flex items-center justify-between p-4 border rounded-lg hover:bg-muted/50 transition-colors">
+                            <div 
+                                key={project.id} 
+                                className={`flex items-center justify-between p-4 border rounded-lg hover:bg-muted/50 transition-colors ${
+                                    isNew ? 'border-blue-300 bg-blue-50/50 ring-1 ring-blue-200' : ''
+                                }`}
+                            >
                                 <div className="flex items-center gap-4">
-                                    <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-xs uppercase">
-                                        {project.ngo.orgName.substring(0, 2)}
+                                    <div className={`h-10 w-10 rounded-full flex items-center justify-center font-bold text-xs uppercase ${
+                                        isNew ? 'bg-blue-100 text-blue-700' : 'bg-primary/10 text-primary'
+                                    }`}>
+                                        {isNew ? <Sparkles size={18} /> : project.ngo.orgName.substring(0, 2)}
                                     </div>
                                     <div>
                                         <h4 className="font-semibold text-foreground flex items-center gap-2">
                                             {project.ngo.orgName}
+                                            {isNew && (
+                                                <Badge className="text-xs bg-blue-500 text-white animate-pulse">
+                                                    NEW PROJECT
+                                                </Badge>
+                                            )}
                                             {isVerified && <Badge variant="secondary" className="text-xs bg-green-100 text-green-700 hover:bg-green-100">Approved</Badge>}
                                         </h4>
                                         <p className="text-sm text-muted-foreground">{project.title} • {project.location}</p>
@@ -74,10 +87,10 @@ export default function NeedsAttentionCard({ initialProjects }) {
                                         <Link href={`/dashboard/projects/${project.id}`}>
                                             <Button
                                                 size="sm"
-                                                variant="link"
-                                                className="text-primary h-auto p-0"
+                                                variant={isNew ? "default" : "link"}
+                                                className={isNew ? "bg-blue-600 hover:bg-blue-700 text-white h-8" : "text-primary h-auto p-0"}
                                             >
-                                                Verify Docs →
+                                                {isNew ? 'Review Project →' : 'Verify Docs →'}
                                             </Button>
                                         </Link>
                                     )}
@@ -88,7 +101,9 @@ export default function NeedsAttentionCard({ initialProjects }) {
                 </div>
             </CardContent>
             <CardFooter>
-                <Button variant="outline" className="w-full">View All Projects</Button>
+                <Link href="/dashboard/projects" className="w-full">
+                    <Button variant="outline" className="w-full">View All Projects</Button>
+                </Link>
             </CardFooter>
         </Card>
     )

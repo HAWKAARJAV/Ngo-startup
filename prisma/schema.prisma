@@ -115,6 +115,7 @@ model Project {
   sector       String
   status       String
   createdAt    DateTime   @default(now())
+  isNewForCorporate Boolean @default(true) // Set to false after corporate reviews
   donations    Donation[]
   ngo          NGO        @relation(fields: [ngoId], references: [id])
   tranches     Tranche[]
@@ -292,12 +293,15 @@ model DocumentRequest {
   priority    String   @default("MEDIUM") // HIGH, MEDIUM, LOW
   status      String   @default("PENDING") // PENDING, UPLOADED, VERIFIED, REJECTED
   requestedAt DateTime @default(now())
+  deadline    DateTime? // Deadline for document submission
+  deadlineWarned Boolean @default(false) // Whether a warning has been sent for missed deadline
   uploadedAt  DateTime?
   fileUrl     String?
   remarks     String?
   
   @@index([ngoId, status])
   @@index([corporateId])
+  @@index([deadline, status])
 }
 
 

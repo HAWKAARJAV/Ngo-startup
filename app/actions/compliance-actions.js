@@ -221,6 +221,52 @@ export async function uploadComplianceDocWithFile(formData) {
             }
         });
 
+        // Also update any matching DocumentRequest (if corporate requested this doc)
+        const matchingRequest = await prisma.documentRequest.findFirst({
+            where: {
+                ngoId: project.ngoId,
+                docName: docName,
+                status: 'PENDING'
+            }
+        });
+
+        if (matchingRequest) {
+            await prisma.documentRequest.update({
+                where: { id: matchingRequest.id },
+                data: {
+                    status: 'UPLOADED',
+                    fileUrl: publicUrl,
+                    uploadedAt: new Date()
+                }
+            });
+
+            // Notify the corporate that document was uploaded
+            const corporate = await prisma.corporate.findUnique({
+                where: { id: matchingRequest.corporateId },
+                include: { user: true }
+            });
+
+            if (corporate) {
+                await prisma.notification.create({
+                    data: {
+                        userId: corporate.userId,
+                        userRole: 'CORPORATE',
+                        type: 'DOCUMENT_UPLOADED',
+                        title: '📄 Document Uploaded',
+                        message: `${project.ngo.orgName} has uploaded: ${docName}`,
+                        link: `/dashboard/projects/${projectId}`,
+                        metadata: JSON.stringify({
+                            requestId: matchingRequest.id,
+                            ngoId: project.ngoId,
+                            ngoName: project.ngo.orgName,
+                            docName,
+                            fileUrl: publicUrl
+                        })
+                    }
+                });
+            }
+        }
+
         revalidatePath(`/dashboard/projects/${projectId}`);
         console.log("Upload successful!");
         return { success: true, url: publicUrl };

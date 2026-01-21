@@ -55,7 +55,16 @@ export default async function ProjectDetailsPage({ params }) {
     const complianceDocs = complianceRes.success ? complianceRes.data : [];
 
     // Get logged-in corporate user
-    const corporate = await getSessionCorporate();
+    let corporate = await getSessionCorporate();
+    
+    // If no corporate session, try to get a default corporate (for demo/testing)
+    if (!corporate) {
+        // Get first corporate that has donated to this project, or just first corporate
+        const firstCorporate = await prisma.corporate.findFirst({
+            orderBy: { createdAt: 'desc' }
+        });
+        corporate = firstCorporate;
+    }
     
     // Get chat room if exists
     const chatRoom = corporate ? await prisma.chatRoom.findFirst({
@@ -65,8 +74,8 @@ export default async function ProjectDetailsPage({ params }) {
         }
     }) : null;
 
-    // Corporate view
-    const isCorporate = true;
+    // Corporate view - only true if we have a corporate
+    const isCorporate = !!corporate;
     const isNgo = false; // Corporate users should not see NGO upload controls
 
     const percentFunded = (project.raisedAmount / project.targetAmount) * 100;

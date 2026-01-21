@@ -16,7 +16,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/components/ui/use-toast";
-import { Upload, Building2, Loader2, FileCheck, Eye, CheckCircle2, Clock, AlertCircle } from "lucide-react";
+import { Upload, Building2, Loader2, FileCheck, Eye, CheckCircle2, Clock, AlertCircle, AlertTriangle, CalendarClock } from "lucide-react";
 
 export default function DocumentRequestUploader({ requests, ngoId }) {
     const [uploading, setUploading] = useState({});
@@ -144,6 +144,55 @@ export default function DocumentRequestUploader({ requests, ngoId }) {
         }
     };
 
+    // Helper function to check deadline status
+    const getDeadlineInfo = (deadline) => {
+        if (!deadline) return null;
+        
+        const deadlineDate = new Date(deadline);
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        deadlineDate.setHours(0, 0, 0, 0);
+        
+        const diffTime = deadlineDate - today;
+        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+        
+        const formattedDate = new Date(deadline).toLocaleDateString('en-IN', {
+            day: 'numeric',
+            month: 'short',
+            year: 'numeric'
+        });
+        
+        if (diffDays < 0) {
+            return {
+                text: `Overdue by ${Math.abs(diffDays)} day${Math.abs(diffDays) !== 1 ? 's' : ''}`,
+                date: formattedDate,
+                status: 'overdue',
+                className: 'bg-red-100 text-red-700 border-red-200'
+            };
+        } else if (diffDays === 0) {
+            return {
+                text: 'Due Today!',
+                date: formattedDate,
+                status: 'today',
+                className: 'bg-orange-100 text-orange-700 border-orange-200'
+            };
+        } else if (diffDays <= 3) {
+            return {
+                text: `Due in ${diffDays} day${diffDays !== 1 ? 's' : ''}`,
+                date: formattedDate,
+                status: 'urgent',
+                className: 'bg-amber-100 text-amber-700 border-amber-200'
+            };
+        } else {
+            return {
+                text: `Due in ${diffDays} days`,
+                date: formattedDate,
+                status: 'normal',
+                className: 'bg-blue-50 text-blue-700 border-blue-200'
+            };
+        }
+    };
+
     if (!requests || requests.length === 0) {
         return null;
     }
@@ -174,10 +223,14 @@ export default function DocumentRequestUploader({ requests, ngoId }) {
                         {pendingRequests.map((req) => (
                             <div 
                                 key={req.id} 
-                                className="bg-white border border-amber-200 rounded-lg p-4 flex flex-col md:flex-row md:items-center justify-between gap-4"
+                                className={`bg-white border rounded-lg p-4 flex flex-col md:flex-row md:items-center justify-between gap-4 ${
+                                    req.deadline && getDeadlineInfo(req.deadline)?.status === 'overdue' 
+                                        ? 'border-red-300 bg-red-50/30' 
+                                        : 'border-amber-200'
+                                }`}
                             >
                                 <div className="flex-1">
-                                    <div className="flex items-center gap-2 mb-1">
+                                    <div className="flex items-center gap-2 mb-1 flex-wrap">
                                         <Building2 className="h-4 w-4 text-blue-600" />
                                         <span className="text-sm font-semibold text-blue-700">{req.corporateName}</span>
                                         <Badge variant="outline" className={`text-xs ${
@@ -195,19 +248,40 @@ export default function DocumentRequestUploader({ requests, ngoId }) {
                                             "{req.description}"
                                         </p>
                                     )}
-                                    <p className="text-xs text-slate-400 mt-2">
-                                        Requested: {new Date(req.requestedAt).toLocaleDateString('en-IN', { 
-                                            day: 'numeric', 
-                                            month: 'short', 
-                                            year: 'numeric',
-                                            hour: '2-digit',
-                                            minute: '2-digit'
-                                        })}
-                                    </p>
+                                    <div className="flex flex-wrap items-center gap-4 mt-2">
+                                        <p className="text-xs text-slate-400">
+                                            Requested: {new Date(req.requestedAt).toLocaleDateString('en-IN', { 
+                                                day: 'numeric', 
+                                                month: 'short', 
+                                                year: 'numeric',
+                                                hour: '2-digit',
+                                                minute: '2-digit'
+                                            })}
+                                        </p>
+                                        {req.deadline && (
+                                            <div className={`text-xs px-2 py-1 rounded-md border flex items-center gap-1 ${getDeadlineInfo(req.deadline)?.className}`}>
+                                                {getDeadlineInfo(req.deadline)?.status === 'overdue' ? (
+                                                    <AlertTriangle className="h-3 w-3" />
+                                                ) : (
+                                                    <CalendarClock className="h-3 w-3" />
+                                                )}
+                                                <span className="font-medium">{getDeadlineInfo(req.deadline)?.text}</span>
+                                                <span className="opacity-75">({getDeadlineInfo(req.deadline)?.date})</span>
+                                            </div>
+                                        )}
+                                    </div>
                                     {req.remarks && (
                                         <p className="text-xs text-red-600 mt-1">
                                             ⚠️ Feedback: {req.remarks}
                                         </p>
+                                    )}
+                                    {req.deadline && getDeadlineInfo(req.deadline)?.status === 'overdue' && (
+                                        <div className="mt-2 p-2 bg-red-100 border border-red-300 rounded-md">
+                                            <p className="text-xs text-red-800 flex items-center gap-1">
+                                                <AlertTriangle className="h-3 w-3" />
+                                                <strong>Warning:</strong> This document is overdue. Please upload immediately to avoid compliance issues.
+                                            </p>
+                                        </div>
                                     )}
                                 </div>
                                 <div className="flex gap-2">

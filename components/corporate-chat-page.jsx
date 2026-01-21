@@ -148,6 +148,60 @@ export default function CorporateChatPage({ corporate, user, ngos }) {
     }
   };
 
+  // Verify uploaded document
+  const handleVerifyDocument = async (requestId) => {
+    try {
+      const response = await fetch('/api/documents/requests/update', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          requestId,
+          status: 'VERIFIED'
+        })
+      });
+
+      if (response.ok) {
+        // Update local state
+        setDocumentRequests(prev => prev.map(req => 
+          req.id === requestId ? { ...req, status: 'VERIFIED' } : req
+        ));
+        alert('✅ Document verified successfully! NGO has been notified.');
+      }
+    } catch (error) {
+      console.error('Error verifying document:', error);
+      alert('Failed to verify document');
+    }
+  };
+
+  // Reject uploaded document
+  const handleRejectDocument = async (requestId) => {
+    const remarks = prompt('Please provide a reason for rejection (required for NGO to correct):');
+    if (!remarks) return;
+
+    try {
+      const response = await fetch('/api/documents/requests/update', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          requestId,
+          status: 'REJECTED',
+          remarks
+        })
+      });
+
+      if (response.ok) {
+        // Update local state
+        setDocumentRequests(prev => prev.map(req => 
+          req.id === requestId ? { ...req, status: 'REJECTED', remarks } : req
+        ));
+        alert('⚠️ Document rejected. NGO has been notified to re-upload.');
+      }
+    } catch (error) {
+      console.error('Error rejecting document:', error);
+      alert('Failed to reject document');
+    }
+  };
+
   // Request document from NGO
   const handleRequestDocument = async () => {
     if (!selectedRoom || !requestForm.docName) {
@@ -171,6 +225,10 @@ export default function CorporateChatPage({ corporate, user, ngos }) {
       });
 
       const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || data.details || 'Failed to create request');
+      }
 
       if (data.request) {
         // Send real-time notification via socket
@@ -205,7 +263,7 @@ export default function CorporateChatPage({ corporate, user, ngos }) {
       }
     } catch (error) {
       console.error('Error requesting document:', error);
-      alert('Failed to send document request');
+      alert('Failed to create document request: ' + error.message);
     }
   };
 
@@ -229,13 +287,16 @@ export default function CorporateChatPage({ corporate, user, ngos }) {
           <div className="flex items-center gap-3">
             <Button
               onClick={() => setShowDocumentsDialog(true)}
-              variant="outline"
-              className="gap-2 relative"
+              variant={documentRequests.filter(r => r.status === 'UPLOADED').length > 0 ? "default" : "outline"}
+              className={`gap-2 relative ${documentRequests.filter(r => r.status === 'UPLOADED').length > 0 ? 'bg-blue-600 hover:bg-blue-700 text-white animate-pulse' : ''}`}
             >
               <FileText className="h-4 w-4" />
-              Document Requests
+              {documentRequests.filter(r => r.status === 'UPLOADED').length > 0 
+                ? `${documentRequests.filter(r => r.status === 'UPLOADED').length} New Upload${documentRequests.filter(r => r.status === 'UPLOADED').length > 1 ? 's' : ''} - Review Now`
+                : 'Document Requests'
+              }
               {documentRequests.filter(r => r.status === 'UPLOADED').length > 0 && (
-                <Badge className="absolute -top-2 -right-2 bg-green-500 text-white text-xs h-5 w-5 flex items-center justify-center p-0 rounded-full">
+                <Badge className="absolute -top-2 -right-2 bg-red-500 text-white text-xs h-5 w-5 flex items-center justify-center p-0 rounded-full animate-bounce">
                   {documentRequests.filter(r => r.status === 'UPLOADED').length}
                 </Badge>
               )}
@@ -515,35 +576,64 @@ export default function CorporateChatPage({ corporate, user, ngos }) {
                     </h3>
                     <div className="space-y-2">
                       {documentRequests.filter(r => r.status === 'UPLOADED' || r.status === 'VERIFIED').map(req => (
-                        <div key={req.id} className="bg-green-50 border border-green-200 rounded-lg p-4 flex items-center justify-between">
-                          <div>
-                            <div className="flex items-center gap-2 mb-1">
-                              <span className="font-medium text-slate-900">{req.docName}</span>
-                              <Badge className={`text-xs ${req.status === 'VERIFIED' ? 'bg-green-100 text-green-700' : 'bg-blue-100 text-blue-700'}`}>
-                                {req.status === 'VERIFIED' ? (
-                                  <><CheckCircle2 className="h-3 w-3 mr-1" /> Verified</>
-                                ) : (
-                                  <><FileCheck className="h-3 w-3 mr-1" /> Uploaded</>
-                                )}
-                              </Badge>
+                        <div key={req.id} className={`border rounded-lg p-4 ${
+                          req.status === 'VERIFIED' 
+                            ? 'bg-green-50 border-green-200' 
+                            : 'bg-blue-50 border-blue-300 ring-2 ring-blue-200'
+                        }`}>
+                          <div className="flex items-start justify-between gap-4">
+                            <div className="flex-1">
+                              <div className="flex items-center gap-2 mb-1 flex-wrap">
+                                <span className="font-medium text-slate-900">{req.docName}</span>
+                                <Badge className={`text-xs ${req.status === 'VERIFIED' ? 'bg-green-100 text-green-700' : 'bg-blue-500 text-white animate-pulse'}`}>
+                                  {req.status === 'VERIFIED' ? (
+                                    <><CheckCircle2 className="h-3 w-3 mr-1" /> Verified</>
+                                  ) : (
+                                    <><FileCheck className="h-3 w-3 mr-1" /> New Upload - Review Required</>
+                                  )}
+                                </Badge>
+                              </div>
+                              <p className="text-xs text-slate-600">From: <strong>{req.ngo?.orgName}</strong></p>
+                              {req.uploadedAt && (
+                                <p className="text-xs text-slate-400 mt-1">
+                                  Uploaded: {new Date(req.uploadedAt).toLocaleDateString('en-IN', {
+                                    day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit'
+                                  })}
+                                </p>
+                              )}
                             </div>
-                            <p className="text-xs text-slate-600">From: {req.ngo?.orgName}</p>
-                            {req.uploadedAt && (
-                              <p className="text-xs text-slate-400 mt-1">
-                                Uploaded: {new Date(req.uploadedAt).toLocaleDateString('en-IN', {
-                                  day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit'
-                                })}
-                              </p>
-                            )}
+                            <div className="flex flex-col gap-2">
+                              {req.fileUrl && (
+                                <Button size="sm" variant="outline" asChild className="gap-2">
+                                  <a href={req.fileUrl} target="_blank" rel="noopener noreferrer">
+                                    <Eye className="h-4 w-4" />
+                                    View
+                                  </a>
+                                </Button>
+                              )}
+                              {req.status === 'UPLOADED' && (
+                                <div className="flex gap-1">
+                                  <Button 
+                                    size="sm" 
+                                    className="bg-green-600 hover:bg-green-700 text-xs px-2"
+                                    onClick={() => handleVerifyDocument(req.id)}
+                                  >
+                                    <CheckCircle2 className="h-3 w-3 mr-1" />
+                                    Verify
+                                  </Button>
+                                  <Button 
+                                    size="sm" 
+                                    variant="destructive"
+                                    className="text-xs px-2"
+                                    onClick={() => handleRejectDocument(req.id)}
+                                  >
+                                    <AlertCircle className="h-3 w-3 mr-1" />
+                                    Reject
+                                  </Button>
+                                </div>
+                              )}
+                            </div>
                           </div>
-                          {req.fileUrl && (
-                            <Button size="sm" variant="outline" asChild className="gap-2">
-                              <a href={req.fileUrl} target="_blank" rel="noopener noreferrer">
-                                <Eye className="h-4 w-4" />
-                                View Document
-                              </a>
-                            </Button>
-                          )}
                         </div>
                       ))}
                     </div>

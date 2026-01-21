@@ -4,7 +4,7 @@ import { AccordionContent, AccordionItem, AccordionTrigger } from "@/components/
 import { Badge } from "@/components/ui/badge";
 import DocRow from "./doc-row";
 
-export default function DocCategory({ categoryKey, title, documents, projectDocs, projectId, isCorporate, isNgo, corporateId, ngoId }) {
+export default function DocCategory({ categoryKey, title, documents, projectDocs, projectId, isCorporate, isNgo, corporateId, ngoId, documentRequests = [] }) {
     // Determine status summary for this category
     const relevantDocs = projectDocs.filter(d => d.category === categoryKey);
     const totalDocs = documents.length;
@@ -37,6 +37,8 @@ export default function DocCategory({ categoryKey, title, documents, projectDocs
             <AccordionContent className="pt-2 pb-4 space-y-3">
                 {documents.map((docName, idx) => {
                     const docData = relevantDocs.find(d => d.docName === docName);
+                    // Find any document request for this document
+                    const docRequest = documentRequests.find(r => r.docName === docName);
                     return (
                         <DocRow
                             key={idx}
@@ -49,6 +51,7 @@ export default function DocCategory({ categoryKey, title, documents, projectDocs
                             isNgo={isNgo}
                             corporateId={corporateId}
                             ngoId={ngoId}
+                            documentRequest={docRequest}
                         />
                     );
                 })}

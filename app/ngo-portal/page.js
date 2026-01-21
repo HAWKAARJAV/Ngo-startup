@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter }
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
-import { ShieldCheck, AlertTriangle, AlertCircle, ArrowRight, Wallet, Calendar, FileText, MessageCircle, TrendingUp, DollarSign, Upload } from "lucide-react";
+import { ShieldCheck, AlertTriangle, AlertCircle, ArrowRight, Wallet, Calendar, FileText, MessageCircle, TrendingUp, DollarSign, Upload, Building2 } from "lucide-react";
 import Link from 'next/link';
 import { Badge } from "@/components/ui/badge";
 import ActionInbox from "@/components/action-inbox";
@@ -312,6 +312,12 @@ export default async function CommandCenterPage() {
                             <CardTitle className="text-lg">Quick Actions</CardTitle>
                         </CardHeader>
                         <CardContent className="space-y-2">
+                            <Button variant="outline" className="w-full justify-start" asChild>
+                                <Link href="/ngo-portal/corporates">
+                                    <Building2 className="h-4 w-4 mr-2" />
+                                    Discover Corporate Funders
+                                </Link>
+                            </Button>
                             <Button variant="outline" className="w-full justify-start" asChild>
                                 <Link href="/ngo-portal/projects">
                                     <FileText className="h-4 w-4 mr-2" />

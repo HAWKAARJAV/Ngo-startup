@@ -38,23 +38,96 @@ export async function PATCH(request) {
         }),
         prisma.nGO.findUnique({
           where: { id: updatedRequest.ngoId },
-          select: { orgName: true }
+          select: { orgName: true, userId: true }
         })
       ]);
 
+      // Create notification for corporate
       await prisma.notification.create({
         data: {
           userId: corporate.userId,
           userRole: 'CORPORATE',
           type: 'DOCUMENT_UPLOADED',
-          title: 'Document Uploaded',
-          message: `${ngo.orgName} has uploaded: ${updatedRequest.docName}`,
-          link: `/dashboard/ngo/${updatedRequest.ngoId}`,
+          title: '📄 Document Uploaded',
+          message: `${ngo.orgName} has uploaded the requested document: ${updatedRequest.docName}`,
+          link: `/dashboard/chat`,
           metadata: JSON.stringify({
             requestId,
             ngoId: updatedRequest.ngoId,
+            ngoName: ngo.orgName,
             docName: updatedRequest.docName,
-            fileUrl
+            fileUrl,
+            uploadedAt: new Date().toISOString()
+          })
+        }
+      });
+
+      // Return with data for real-time notification
+      return NextResponse.json({ 
+        request: updatedRequest,
+        notification: {
+          corporateUserId: corporate.userId,
+          ngoName: ngo.orgName,
+          docName: updatedRequest.docName,
+          fileUrl
+        }
+      });
+    }
+
+    // If document was verified by corporate
+    if (status === 'VERIFIED') {
+      const ngo = await prisma.nGO.findUnique({
+        where: { id: updatedRequest.ngoId },
+        select: { userId: true, orgName: true }
+      });
+
+      const corporate = await prisma.corporate.findUnique({
+        where: { id: updatedRequest.corporateId },
+        select: { companyName: true }
+      });
+
+      // Notify NGO that document was verified
+      await prisma.notification.create({
+        data: {
+          userId: ngo.userId,
+          userRole: 'NGO',
+          type: 'DOCUMENT_VERIFIED',
+          title: '✅ Document Verified',
+          message: `${corporate.companyName} has verified your document: ${updatedRequest.docName}`,
+          link: `/ngo-portal/compliance`,
+          metadata: JSON.stringify({
+            requestId,
+            docName: updatedRequest.docName
+          })
+        }
+      });
+    }
+
+    // If document was rejected by corporate
+    if (status === 'REJECTED') {
+      const ngo = await prisma.nGO.findUnique({
+        where: { id: updatedRequest.ngoId },
+        select: { userId: true }
+      });
+
+      const corporate = await prisma.corporate.findUnique({
+        where: { id: updatedRequest.corporateId },
+        select: { companyName: true }
+      });
+
+      // Notify NGO that document was rejected
+      await prisma.notification.create({
+        data: {
+          userId: ngo.userId,
+          userRole: 'NGO',
+          type: 'DOCUMENT_REJECTED',
+          title: '⚠️ Document Rejected',
+          message: `${corporate.companyName} has rejected your document: ${updatedRequest.docName}. ${remarks ? `Reason: ${remarks}` : 'Please re-upload with corrections.'}`,
+          link: `/ngo-portal/compliance`,
+          metadata: JSON.stringify({
+            requestId,
+            docName: updatedRequest.docName,
+            remarks
           })
         }
       });

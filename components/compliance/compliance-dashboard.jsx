@@ -1,5 +1,6 @@
 'use client';
 
+import { useState, useEffect } from "react";
 import { Accordion } from "@/components/ui/accordion";
 import { Progress } from "@/components/ui/progress";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -77,6 +78,31 @@ const ALL_CATEGORIES = [
 ];
 
 export default function ComplianceDashboard({ projectId, projectDocs = [], isCorporate = false, isNgo = false, corporateId = null, ngoId = null }) {
+    const [documentRequests, setDocumentRequests] = useState([]);
+
+    // Fetch document requests
+    useEffect(() => {
+        const fetchRequests = async () => {
+            try {
+                const params = new URLSearchParams();
+                if (ngoId) params.append('ngoId', ngoId);
+                if (corporateId) params.append('corporateId', corporateId);
+                
+                const res = await fetch(`/api/documents/requests?${params.toString()}`);
+                const data = await res.json();
+                if (data.requests) {
+                    setDocumentRequests(data.requests);
+                }
+            } catch (err) {
+                console.error('Error fetching document requests:', err);
+            }
+        };
+        
+        if (ngoId || corporateId) {
+            fetchRequests();
+        }
+    }, [ngoId, corporateId]);
+
     // Calculate Progress
     const totalRequired = ALL_CATEGORIES.reduce((acc, cat) => acc + cat.docs.length, 0);
     const approvedCount = projectDocs.filter(d => d.status === 'APPROVED').length;
@@ -135,6 +161,7 @@ export default function ComplianceDashboard({ projectId, projectDocs = [], isCor
                         isNgo={isNgo}
                         corporateId={corporateId}
                         ngoId={ngoId}
+                        documentRequests={documentRequests}
                     />
                 ))}
             </Accordion>

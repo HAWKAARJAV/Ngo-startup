@@ -6,14 +6,14 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { CheckCircle2, Clock, Eye, FileText, Upload, AlertCircle, XCircle, BellRing } from "lucide-react";
+import { CheckCircle2, Clock, Eye, FileText, Upload, AlertCircle, XCircle, BellRing, Calendar } from "lucide-react";
 import { useState, useRef } from "react";
 import { uploadComplianceDocWithFile, verifyComplianceDoc } from "@/app/actions/compliance-actions";
 import { useToast } from "@/components/ui/use-toast";
 import { Loader2 } from "lucide-react";
 import RequestDocDialog from "./request-doc-dialog";
 
-export default function DocRow({ projectId, category, categoryTitle, docName, docData, isCorporate, isNgo, corporateId, ngoId }) {
+export default function DocRow({ projectId, category, categoryTitle, docName, docData, isCorporate, isNgo, corporateId, ngoId, documentRequest }) {
     const [isUploading, setIsUploading] = useState(false);
     const [selectedFile, setSelectedFile] = useState(null);
     const [isVerifying, setIsVerifying] = useState(false);
@@ -24,7 +24,22 @@ export default function DocRow({ projectId, category, categoryTitle, docName, do
 
     const { toast } = useToast();
 
-    const status = docData?.status || 'PENDING';
+    // Determine the effective status
+    // Priority: docData status > documentRequest status > PENDING
+    let status = docData?.status || 'PENDING';
+    
+    // If document request exists and document hasn't been submitted yet
+    if (documentRequest && status === 'PENDING') {
+        if (documentRequest.status === 'UPLOADED') {
+            status = 'UPLOADED'; // NGO has uploaded via request
+        } else if (documentRequest.status === 'PENDING') {
+            status = 'REQUESTED'; // Corporate has requested
+        } else if (documentRequest.status === 'VERIFIED') {
+            status = 'VERIFIED';
+        } else if (documentRequest.status === 'REJECTED') {
+            status = 'REJECTED';
+        }
+    }
 
     const handleFileChange = (e) => {
         const file = e.target.files[0];
@@ -130,6 +145,8 @@ export default function DocRow({ projectId, category, categoryTitle, docName, do
 
     const getStatusBadge = (s) => {
         switch (s) {
+            case 'REQUESTED': return <Badge className="bg-amber-100 text-amber-700 hover:bg-amber-100 pb-1">Requested</Badge>;
+            case 'UPLOADED': return <Badge className="bg-blue-100 text-blue-700 hover:bg-blue-100 pb-1">Uploaded</Badge>;
             case 'SUBMITTED': return <Badge className="bg-blue-100 text-blue-700 hover:bg-blue-100 pb-1">Submitted</Badge>;
             case 'VERIFIED': return <Badge className="bg-purple-100 text-purple-700 hover:bg-purple-100 pb-1">Verified</Badge>;
             case 'APPROVED': return <Badge className="bg-green-100 text-green-700 hover:bg-green-100 pb-1">Approved</Badge>;
@@ -143,21 +160,34 @@ export default function DocRow({ projectId, category, categoryTitle, docName, do
             case 'APPROVED': return <CheckCircle2 className="text-green-500 h-5 w-5" />;
             case 'VERIFIED': return <CheckCircle2 className="text-purple-500 h-5 w-5" />;
             case 'REJECTED': return <XCircle className="text-red-500 h-5 w-5" />;
-            case 'SUBMITTED': return <Clock className="text-blue-500 h-5 w-5" />;
+            case 'SUBMITTED': 
+            case 'UPLOADED': return <Clock className="text-blue-500 h-5 w-5" />;
+            case 'REQUESTED': return <BellRing className="text-amber-500 h-5 w-5" />;
             default: return <AlertCircle className="text-slate-300 h-5 w-5" />;
         }
     };
 
     return (
-        <div className="flex items-center justify-between p-4 bg-white border border-slate-100 rounded-lg hover:shadow-sm transition-all">
+        <div className={`flex items-center justify-between p-4 bg-white border rounded-lg hover:shadow-sm transition-all ${status === 'REQUESTED' ? 'border-amber-200 bg-amber-50/30' : status === 'UPLOADED' ? 'border-blue-200 bg-blue-50/30' : 'border-slate-100'}`}>
             <div className="flex items-center gap-3">
-                <div className="bg-slate-50 p-2 rounded-md">
-                    <FileText className="text-slate-400 h-5 w-5" />
+                <div className={`p-2 rounded-md ${status === 'REQUESTED' ? 'bg-amber-100' : status === 'UPLOADED' ? 'bg-blue-100' : 'bg-slate-50'}`}>
+                    <FileText className={`h-5 w-5 ${status === 'REQUESTED' ? 'text-amber-500' : status === 'UPLOADED' ? 'text-blue-500' : 'text-slate-400'}`} />
                 </div>
                 <div>
                     <h4 className="font-medium text-slate-900 text-sm md:text-base">{docName}</h4>
                     {docData?.lastUpdated && (
                         <p className="text-xs text-slate-500">Updated: {new Date(docData.lastUpdated).toISOString().split('T')[0]}</p>
+                    )}
+                    {/* Show deadline when requested */}
+                    {status === 'REQUESTED' && documentRequest?.deadline && (
+                        <p className="text-xs text-amber-600 mt-1 flex items-center gap-1">
+                            <Calendar className="h-3 w-3" />
+                            Deadline: {new Date(documentRequest.deadline).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
+                        </p>
+                    )}
+                    {/* Show requester info */}
+                    {status === 'REQUESTED' && documentRequest?.corporateName && (
+                        <p className="text-xs text-slate-500">Requested by: {documentRequest.corporateName}</p>
                     )}
                     {docData?.remarks && (
                         <p className="text-xs text-red-500 mt-1">Note: {docData.remarks}</p>
@@ -169,7 +199,7 @@ export default function DocRow({ projectId, category, categoryTitle, docName, do
                 {getStatusBadge(status)}
 
                 <div className="flex items-center gap-2">
-                    {/* Corporate Request Action (Demand) */}
+                    {/* Corporate Request Action - only show if not already requested or uploaded */}
                     {isCorporate && (status === 'PENDING' || status === 'REJECTED') && (
                         <RequestDocDialog
                             fixedMode={true}
@@ -190,12 +220,23 @@ export default function DocRow({ projectId, category, categoryTitle, docName, do
                                     title: "Request Sent",
                                     description: "NGO has been notified to upload this document",
                                 });
+                                // Refresh page to update status
+                                window.location.reload();
                             }}
                         />
                     )}
 
-                    {/* View/Action Buttons */}
-                    {status !== 'PENDING' && (
+                    {/* View Document - show when uploaded or submitted */}
+                    {(status === 'UPLOADED' && documentRequest?.fileUrl) && (
+                        <Button variant="outline" size="sm" className="gap-1" asChild>
+                            <a href={documentRequest.fileUrl} target="_blank" rel="noopener noreferrer">
+                                <Eye className="h-4 w-4" /> View
+                            </a>
+                        </Button>
+                    )}
+
+                    {/* View/Action Buttons for compliance docs */}
+                    {status !== 'PENDING' && status !== 'REQUESTED' && docData?.url && (
                         <Button variant="ghost" size="icon" asChild>
                             <a href={docData.url} target="_blank" rel="noopener noreferrer">
                                 <Eye className="h-4 w-4 text-slate-500" />
@@ -203,11 +244,11 @@ export default function DocRow({ projectId, category, categoryTitle, docName, do
                         </Button>
                     )}
 
-                    {/* NGO Upload Action */}
-                    {isNgo && (status === 'PENDING' || status === 'REJECTED') && (
+                    {/* NGO Upload Action - show for pending, requested, or rejected */}
+                    {isNgo && (status === 'PENDING' || status === 'REQUESTED' || status === 'REJECTED') && (
                         <Dialog open={openUpload} onOpenChange={setOpenUpload}>
                             <DialogTrigger asChild>
-                                <Button variant="outline" size="sm" className="gap-2">
+                                <Button variant={status === 'REQUESTED' ? 'default' : 'outline'} size="sm" className={`gap-2 ${status === 'REQUESTED' ? 'bg-amber-600 hover:bg-amber-700' : ''}`}>
                                     <Upload className="h-4 w-4" /> Upload
                                 </Button>
                             </DialogTrigger>
@@ -216,6 +257,11 @@ export default function DocRow({ projectId, category, categoryTitle, docName, do
                                     <DialogTitle>Upload Document</DialogTitle>
                                     <DialogDescription>
                                         Upload <b>{docName}</b> for this project.
+                                        {status === 'REQUESTED' && documentRequest?.deadline && (
+                                            <span className="block mt-2 text-amber-600">
+                                                Deadline: {new Date(documentRequest.deadline).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
+                                            </span>
+                                        )}
                                     </DialogDescription>
                                 </DialogHeader>
                                 <div className="grid w-full items-center gap-4">
@@ -247,7 +293,7 @@ export default function DocRow({ projectId, category, categoryTitle, docName, do
                     )}
 
                     {/* Corporate Verify Action */}
-                    {isCorporate && (status === 'SUBMITTED' || status === 'VERIFIED') && (
+                    {isCorporate && (status === 'SUBMITTED' || status === 'VERIFIED' || status === 'UPLOADED') && (
                         <Dialog open={openVerify} onOpenChange={setOpenVerify}>
                             <DialogTrigger asChild>
                                 <Button size="sm" className="gap-2 bg-slate-900 text-white hover:bg-slate-800">
