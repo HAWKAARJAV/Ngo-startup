@@ -93,7 +93,7 @@ export default function DashboardLayout({ children }) {
             >
                 <div className="h-16 flex items-center justify-between px-4 border-b border-slate-800">
                     {isSidebarOpen ? (
-                        <span className="text-xl font-bold tracking-tight text-blue-400">NGO-CONNECT</span>
+                        <span className="text-xl font-bold tracking-tight text-blue-400">CorpoGN</span>
                     ) : (
                         <span className="text-xl font-bold text-blue-400">NC</span>
                     )}

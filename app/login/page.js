@@ -25,7 +25,7 @@ export default function LoginPage() {
         <div className="min-h-screen flex items-center justify-center bg-slate-50 p-4">
             <Card className="w-full max-w-md shadow-lg border-0">
                 <CardHeader className="space-y-1">
-                    <CardTitle className="text-2xl font-bold text-center">Sign in to NGO Connect</CardTitle>
+                    <CardTitle className="text-2xl font-bold text-center">Sign in to CorpoGN</CardTitle>
                     <CardDescription className="text-center">
                         Enter your email to access your dashboard
                     </CardDescription>
@@ -34,14 +34,14 @@ export default function LoginPage() {
                     <CardContent className="space-y-4">
                         <div className="space-y-2">
                             <Label htmlFor="email">Email</Label>
-                            <Input 
+                            <Input
                                 ref={emailInputRef}
-                                id="email" 
-                                name="email" 
-                                type="email" 
-                                placeholder="m@example.com" 
-                                required 
-                                defaultValue="csr@techgiant.com" 
+                                id="email"
+                                name="email"
+                                type="email"
+                                placeholder="m@example.com"
+                                required
+                                defaultValue="csr@techgiant.com"
                             />
                         </div>
                         <div className="space-y-2">

@@ -13,8 +13,8 @@ export default function LandingPage() {
       <nav className="border-b border-slate-100 sticky top-0 bg-white/80 backdrop-blur-md z-50">
         <div className="container mx-auto px-6 h-16 flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <div className="h-8 w-8 bg-blue-600 rounded-lg flex items-center justify-center text-white font-bold">NC</div>
-            <span className="text-xl font-bold text-slate-900 tracking-tight">NGO-CONNECT</span>
+            <div className="h-8 w-8 bg-blue-600 rounded-lg flex items-center justify-center text-white font-bold">CG</div>
+            <span className="text-xl font-bold text-slate-900 tracking-tight">CorpoGN</span>
           </div>
           <div className="hidden md:flex items-center gap-8">
             <Link href="#features" className="text-sm font-medium text-slate-600 hover:text-slate-900 transition-colors">Features</Link>
@@ -257,7 +257,7 @@ export default function LandingPage() {
         <div className="container mx-auto px-6">
           <div className="text-center max-w-3xl mx-auto mb-16">
             <Badge className="mb-4 bg-green-100 text-green-700 hover:bg-green-100">Simple Process</Badge>
-            <h2 className="text-4xl lg:text-5xl font-bold text-slate-900 mb-4">How NGO Connect Works</h2>
+            <h2 className="text-4xl lg:text-5xl font-bold text-slate-900 mb-4">How CorpoGN Works</h2>
             <p className="text-xl text-slate-600">Three simple steps to transform your CSR program</p>
           </div>
 
@@ -356,7 +356,7 @@ export default function LandingPage() {
               </CardHeader>
               <CardContent>
                 <p className="text-slate-300 leading-relaxed">
-                  "NGO Connect reduced our compliance workload by 80%. What used to take our team 2 weeks
+                  "CorpoGN reduced our compliance workload by 80%. What used to take our team 2 weeks
                   now happens in 10 minutes. The auto-generated CSR-2 reports are a game-changer."
                 </p>
                 <p className="text-sm text-slate-500 mt-4">— Ravi Kumar, Head of CSR</p>
@@ -378,7 +378,7 @@ export default function LandingPage() {
               </CardHeader>
               <CardContent>
                 <p className="text-slate-300 leading-relaxed">
-                  "We struggled to get funding for 3 years. After getting verified on NGO Connect,
+                  "We struggled to get funding for 3 years. After getting verified on CorpoGN,
                   we partnered with 5 corporates in 6 months. The platform's credibility opens doors."
                 </p>
                 <p className="text-sm text-slate-500 mt-4">— Dr. Anjali Sharma, Founder</p>
@@ -600,7 +600,7 @@ export default function LandingPage() {
 
             <details className="bg-white p-6 rounded-lg border border-slate-200 group">
               <summary className="font-bold text-lg text-slate-900 cursor-pointer list-none flex items-center justify-between">
-                Is NGO Connect really free for NGOs?
+                Is CorpoGN really free for NGOs?
                 <span className="text-slate-400 group-open:rotate-180 transition-transform">▼</span>
               </summary>
               <p className="mt-4 text-slate-600 leading-relaxed">
@@ -666,7 +666,7 @@ export default function LandingPage() {
         <div className="container mx-auto px-6 text-center max-w-4xl">
           <h2 className="text-4xl lg:text-5xl font-bold mb-6">Ready to Transform Your CSR Program?</h2>
           <p className="text-xl text-blue-100 mb-10">
-            Join 50+ corporates and 5,000+ NGOs using NGO Connect to create verified, measurable impact.
+            Join 50+ corporates and 5,000+ NGOs using CorpoGN to create verified, measurable impact.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link href="/register/ngo">
@@ -690,15 +690,15 @@ export default function LandingPage() {
           <div className="grid md:grid-cols-5 gap-12 mb-12">
             <div className="md:col-span-2">
               <div className="flex items-center gap-2 mb-4">
-                <div className="h-10 w-10 bg-blue-600 rounded-lg flex items-center justify-center text-white font-bold">NC</div>
-                <span className="text-xl font-bold text-white">NGO-CONNECT</span>
+                <div className="h-10 w-10 bg-blue-600 rounded-lg flex items-center justify-center text-white font-bold">CG</div>
+                <span className="text-xl font-bold text-white">CorpoGN</span>
               </div>
               <p className="text-sm leading-relaxed mb-4">
                 India's first AI-powered CSR compliance platform. Connecting verified NGOs with corporate funders
                 to create transparent, measurable impact.
               </p>
               <p className="text-xs text-slate-500">
-                © 2026 NGO Connect. All rights reserved.
+                © 2026 CorpoGN. All rights reserved.
               </p>
             </div>
 

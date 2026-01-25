@@ -7,7 +7,7 @@ const inter = Inter({
 });
 
 export const metadata = {
-  title: "NGO Connect - CSR Compliance Platform",
+  title: "CorpoGN - CSR Compliance Platform",
   description: "India's CSR compliance platform connecting verified NGOs with corporate funders.",
 };
 

@@ -2,7 +2,7 @@ const { PrismaClient } = require('@prisma/client')
 const prisma = new PrismaClient()
 
 async function main() {
-    console.log('🌱 Start seeding NGO-CONNECT with comprehensive demo data...')
+    console.log('🌱 Start seeding CorpoGN with comprehensive demo data...')
     console.log('═══════════════════════════════════════════════════════════════')
 
     // 1. Cleanup existing data (order matters for foreign keys)

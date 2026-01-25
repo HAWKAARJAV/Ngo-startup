@@ -47,7 +47,7 @@ export default async function AdminDashboardPage() {
             <div className="flex justify-between items-center">
                 <div>
                     <h1 className="text-3xl font-bold tracking-tight">System Cockpit</h1>
-                    <p className="text-neutral-400">Real-time oversight of the NGO Connect ecosystem.</p>
+                    <p className="text-neutral-400">Real-time oversight of the CorpoGN ecosystem.</p>
                 </div>
                 <Badge variant="outline" className="border-green-800 text-green-500 bg-green-950/30 px-3 py-1 animate-pulse">
                     <Activity className="h-3 w-3 mr-2" /> SYSTEM OPERATIONAL

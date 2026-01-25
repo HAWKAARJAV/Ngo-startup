@@ -135,7 +135,7 @@ export default function NGORegistrationWizard() {
                 <div className="flex items-center gap-3">
                     <div className="h-10 w-10 bg-blue-600 rounded-lg flex items-center justify-center text-white font-bold">NC</div>
                     <div>
-                        <div className="font-bold text-slate-900">NGO Connect</div>
+                        <div className="font-bold text-slate-900">CorpoGN</div>
                         <div className="text-xs text-slate-500">Official Registration Portal</div>
                     </div>
                 </div>

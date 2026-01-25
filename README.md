@@ -1,6 +1,6 @@
 <div align="center">
 
-# 🤝 NGO Connect
+# 🤝 CorpoGN
 
 ### The Operating System for Transparent Corporate Social Responsibility
 
@@ -35,7 +35,7 @@
 
 ## 🌟 Overview
 
-**NGO Connect** is a next-generation SaaS platform that revolutionizes CSR (Corporate Social Responsibility) in India by solving the critical **trust deficit** between corporates and NGOs.
+**CorpoGN** is a next-generation SaaS platform that revolutionizes CSR (Corporate Social Responsibility) in India by solving the critical **trust deficit** between corporates and NGOs.
 
 ### The Problem 🎯
 - Corporates struggle to find verified, compliant NGOs
@@ -153,7 +153,7 @@ WebSocket-based live updates for:
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│                     NGO Connect Platform                     │
+│                       CorpoGN Platform                        │
 ├─────────────────────────────────────────────────────────────┤
 │                                                               │
 │  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐      │
@@ -184,7 +184,7 @@ WebSocket-based live updates for:
 ### Project Structure
 
 ```
-ngo-connect/
+corpogn/
 ├── 📁 app/                     # Next.js App Router
 │   ├── api/                    # API Routes
 │   │   ├── ai/                 # Gemini AI endpoints
@@ -346,13 +346,13 @@ npm run dev
 
 ```bash
 # Build image
-docker build -t ngo-connect .
+docker build -t corpogn .
 
 # Run container
 docker run -p 3000:3000 \
   -e DATABASE_URL="your_db_url" \
   -e GOOGLE_API_KEY="your_key" \
-  ngo-connect
+  corpogn
 ```
 
 </details>

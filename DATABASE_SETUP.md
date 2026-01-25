@@ -1,8 +1,8 @@
-# Database Setup Guide - NGO Connect
+# Database Setup Guide - CorpoGN
 
 ## 🗄️ Real Delhi-NCR NGO Data Integration
 
-Your NGO Connect platform now includes **real, verified NGO data** from Delhi and NCR region!
+Your CorpoGN platform now includes **real, verified NGO data** from Delhi and NCR region!
 
 ### 📊 What's Included in the Seed Data:
 
@@ -235,6 +235,6 @@ npx prisma migrate status
 
 ---
 
-**🎉 Your NGO Connect platform is now loaded with real, verified Delhi-NCR NGO data!**
+**🎉 Your CorpoGN platform is now loaded with real, verified Delhi-NCR NGO data!**
 
 Ready to demo to investors and onboard corporates! 🚀

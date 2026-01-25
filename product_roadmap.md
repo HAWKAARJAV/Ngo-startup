@@ -1,4 +1,4 @@
-# NGO Connect - V2 Strategic Roadmap
+# CorpoGN - V2 Strategic Roadmap
 **From MVP to Category-Defining CSR Operating System**
 
 > **Current Status**: Feature-complete MVP.

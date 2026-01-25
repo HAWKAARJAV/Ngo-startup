@@ -13,7 +13,7 @@ export default function PrivacyPage() {
                 <div className="container mx-auto px-6 h-16 flex items-center justify-between">
                     <Link href="/" className="flex items-center gap-2">
                         <div className="h-8 w-8 bg-blue-600 rounded-lg flex items-center justify-center text-white font-bold">NC</div>
-                        <span className="text-xl font-bold text-slate-900 tracking-tight">NGO-CONNECT</span>
+                        <span className="text-xl font-bold text-slate-900 tracking-tight">CorpoGN</span>
                     </Link>
                     <Link href="/">
                         <Button variant="ghost">← Back to Home</Button>
@@ -33,7 +33,7 @@ export default function PrivacyPage() {
                 <div className="prose prose-slate max-w-none">
                     <Card className="p-6 mb-8 bg-blue-50 border-blue-200">
                         <p className="text-slate-700 leading-relaxed mb-0">
-                            At NGO Connect, we take your privacy seriously. This policy outlines how we collect, use, 
+                            At CorpoGN, we take your privacy seriously. This policy outlines how we collect, use, 
                             and protect your personal information when you use our platform.
                         </p>
                     </Card>
@@ -67,7 +67,7 @@ export default function PrivacyPage() {
                         </div>
                         
                         <ul className="list-disc pl-6 space-y-2 text-slate-600">
-                            <li><strong>Platform Operations:</strong> To provide, maintain, and improve NGO Connect services</li>
+                            <li><strong>Platform Operations:</strong> To provide, maintain, and improve CorpoGN services</li>
                             <li><strong>Verification:</strong> To validate NGO compliance status with government databases</li>
                             <li><strong>Matching:</strong> To use AI algorithms for connecting NGOs with relevant corporate funders</li>
                             <li><strong>Communication:</strong> To send important updates, compliance alerts, and support messages</li>
@@ -161,7 +161,7 @@ export default function PrivacyPage() {
                         <h2 className="text-2xl font-bold text-slate-900 mb-4">Children's Privacy</h2>
                         
                         <p className="text-slate-600">
-                            NGO Connect is not intended for users under 18 years of age. We do not knowingly collect 
+                            CorpoGN is not intended for users under 18 years of age. We do not knowingly collect 
                             personal information from children. If you believe a child has provided us with data, 
                             please contact us immediately.
                         </p>
@@ -188,7 +188,7 @@ export default function PrivacyPage() {
                         </p>
                         <Card className="p-6 bg-slate-50">
                             <p className="text-slate-700 mb-2"><strong>Data Protection Officer:</strong> privacy@ngoconnect.in</p>
-                            <p className="text-slate-700 mb-2"><strong>Address:</strong> NGO Connect Technologies Pvt. Ltd., 123 Impact Tower, Connaught Place, New Delhi - 110001</p>
+                            <p className="text-slate-700 mb-2"><strong>Address:</strong> CorpoGN Technologies Pvt. Ltd., 123 Impact Tower, Connaught Place, New Delhi - 110001</p>
                             <p className="text-slate-700"><strong>Phone:</strong> +91 12345 67890</p>
                         </Card>
                     </section>

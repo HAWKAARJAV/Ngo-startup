@@ -38,12 +38,12 @@ export default function NgoDashboardLayout({ children }) {
     const [userData, setUserData] = useState(null);
     const [isMounted, setIsMounted] = useState(false);
     const sheetId = useId();
-    
+
     // Hydration fix - only render client-specific content after mount
     useEffect(() => {
         setIsMounted(true);
     }, []);
-    
+
     // Get user data from cookie and initialize socket
     useEffect(() => {
         const tokenCookie = getCookie('token');
@@ -51,7 +51,7 @@ export default function NgoDashboardLayout({ children }) {
             try {
                 const session = JSON.parse(decodeURIComponent(tokenCookie));
                 setUserData(session);
-                
+
                 // Connect socket with actual user data
                 if (session.role === 'NGO') {
                     socketManager.connect(session.id, 'NGO', session.email.split('@')[0]);
@@ -83,22 +83,21 @@ export default function NgoDashboardLayout({ children }) {
     const SidebarContent = () => (
         <div className="flex flex-col h-full bg-slate-900 text-white">
             <div className="p-6 border-b border-slate-800">
-                <h1 className="text-xl font-bold tracking-tight text-blue-400">NGO Connect</h1>
+                <h1 className="text-xl font-bold tracking-tight text-blue-400">CorpoGN</h1>
                 <p className="text-xs text-slate-400 mt-1">Operational Console</p>
             </div>
             <nav className="flex-1 p-4 space-y-2">
                 {navItems.map((item) => {
-                    const isActive = pathname === item.href || 
+                    const isActive = pathname === item.href ||
                         (item.href !== '/ngo-portal' && pathname.startsWith(item.href));
                     return (
                         <Link
                             key={item.href}
                             href={item.href}
-                            className={`flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-lg transition-colors ${
-                                isActive 
-                                    ? 'bg-blue-600 text-white shadow-lg shadow-blue-900/20' 
+                            className={`flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-lg transition-colors ${isActive
+                                    ? 'bg-blue-600 text-white shadow-lg shadow-blue-900/20'
                                     : 'text-slate-300 hover:bg-slate-800 hover:text-white'
-                            }`}
+                                }`}
                         >
                             <item.icon className="h-5 w-5" />
                             {item.label}
@@ -107,15 +106,15 @@ export default function NgoDashboardLayout({ children }) {
                 })}
             </nav>
             <div className="p-4 border-t border-slate-800">
-                <Button 
-                    variant="ghost" 
+                <Button
+                    variant="ghost"
                     className="w-full justify-start text-slate-400 hover:text-white hover:bg-slate-800 mb-2"
                 >
                     <Settings className="h-5 w-5 mr-3" />
                     Settings
                 </Button>
-                <Button 
-                    variant="ghost" 
+                <Button
+                    variant="ghost"
                     className="w-full justify-start text-red-400 hover:text-red-300 hover:bg-red-400/10"
                     onClick={handleLogout}
                 >
@@ -166,10 +165,10 @@ export default function NgoDashboardLayout({ children }) {
                         {userData && (
                             <NotificationCenter userId={userData.id} userRole="NGO" />
                         )}
-                        
+
                         <Avatar>
                             <AvatarImage src="https://images.unsplash.com/photo-1560179707-f14e90ef3623?w=40&h=40&fit=crop" />
-                            <AvatarFallback>{userData?.email?.substring(0,2).toUpperCase() || 'NG'}</AvatarFallback>
+                            <AvatarFallback>{userData?.email?.substring(0, 2).toUpperCase() || 'NG'}</AvatarFallback>
                         </Avatar>
                     </div>
                 </header>

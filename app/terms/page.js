@@ -13,7 +13,7 @@ export default function TermsPage() {
                 <div className="container mx-auto px-6 h-16 flex items-center justify-between">
                     <Link href="/" className="flex items-center gap-2">
                         <div className="h-8 w-8 bg-blue-600 rounded-lg flex items-center justify-center text-white font-bold">NC</div>
-                        <span className="text-xl font-bold text-slate-900 tracking-tight">NGO-CONNECT</span>
+                        <span className="text-xl font-bold text-slate-900 tracking-tight">CorpoGN</span>
                     </Link>
                     <Link href="/">
                         <Button variant="ghost">← Back to Home</Button>
@@ -33,7 +33,7 @@ export default function TermsPage() {
                 <div className="prose prose-slate max-w-none">
                     <Card className="p-6 mb-8 bg-amber-50 border-amber-200">
                         <p className="text-slate-700 leading-relaxed mb-0">
-                            <strong>Important:</strong> By accessing or using NGO Connect, you agree to be bound by these Terms of Service. 
+                            <strong>Important:</strong> By accessing or using CorpoGN, you agree to be bound by these Terms of Service. 
                             Please read them carefully before using our platform.
                         </p>
                     </Card>
@@ -43,12 +43,12 @@ export default function TermsPage() {
                         
                         <p className="text-slate-600">
                             These Terms of Service ("Terms") constitute a legally binding agreement between you and 
-                            NGO Connect Technologies Pvt. Ltd. ("NGO Connect", "we", "us", or "our") regarding your use 
-                            of the NGO Connect platform and services.
+                            CorpoGN Technologies Pvt. Ltd. ("CorpoGN", "we", "us", or "our") regarding your use 
+                            of the CorpoGN platform and services.
                         </p>
                         
                         <p className="text-slate-600 mt-4">
-                            If you are using NGO Connect on behalf of an organization, you represent and warrant that you 
+                            If you are using CorpoGN on behalf of an organization, you represent and warrant that you 
                             have the authority to bind that organization to these Terms.
                         </p>
                     </section>
@@ -56,7 +56,7 @@ export default function TermsPage() {
                     <section className="mb-12">
                         <h2 className="text-2xl font-bold text-slate-900 mb-4">2. Eligibility</h2>
                         
-                        <p className="text-slate-600 mb-4">To use NGO Connect, you must:</p>
+                        <p className="text-slate-600 mb-4">To use CorpoGN, you must:</p>
                         <ul className="list-disc pl-6 space-y-2 text-slate-600">
                             <li>Be at least 18 years of age</li>
                             <li>Have the legal capacity to enter into binding contracts</li>
@@ -112,7 +112,7 @@ export default function TermsPage() {
                             <div className="flex items-start gap-3">
                                 <AlertCircle className="h-5 w-5 text-blue-600 flex-shrink-0 mt-0.5" />
                                 <p className="text-slate-700 text-sm mb-0">
-                                    <strong>Important:</strong> NGO Connect performs automated verification checks against government databases. 
+                                    <strong>Important:</strong> CorpoGN performs automated verification checks against government databases. 
                                     However, we do not guarantee the accuracy or completeness of third-party data.
                                 </p>
                             </div>
@@ -148,8 +148,8 @@ export default function TermsPage() {
                         
                         <h3 className="text-xl font-semibold text-slate-900 mt-6 mb-3">7.1 Platform Ownership</h3>
                         <p className="text-slate-600 mb-4">
-                            All content, features, and functionality of NGO Connect (including but not limited to software, design, 
-                            text, graphics, logos) are owned by NGO Connect Technologies Pvt. Ltd. and protected by intellectual property laws.
+                            All content, features, and functionality of CorpoGN (including but not limited to software, design, 
+                            text, graphics, logos) are owned by CorpoGN Technologies Pvt. Ltd. and protected by intellectual property laws.
                         </p>
 
                         <h3 className="text-xl font-semibold text-slate-900 mt-6 mb-3">7.2 Your Content</h3>
@@ -183,7 +183,7 @@ export default function TermsPage() {
                         
                         <Card className="p-4 mb-4 bg-slate-100 border-slate-300">
                             <p className="text-slate-700 text-sm mb-0">
-                                <strong>Important Legal Notice:</strong> NGO Connect is a technology platform that facilitates connections. 
+                                <strong>Important Legal Notice:</strong> CorpoGN is a technology platform that facilitates connections. 
                                 We are NOT a party to any funding agreements between NGOs and Corporates.
                             </p>
                         </Card>
@@ -198,7 +198,7 @@ export default function TermsPage() {
 
                         <h3 className="text-xl font-semibold text-slate-900 mt-6 mb-3">9.2 Liability Cap</h3>
                         <p className="text-slate-600">
-                            Our total liability for any claims arising from your use of NGO Connect shall not exceed the fees you 
+                            Our total liability for any claims arising from your use of CorpoGN shall not exceed the fees you 
                             paid to us in the 12 months preceding the claim.
                         </p>
                     </section>
@@ -207,7 +207,7 @@ export default function TermsPage() {
                         <h2 className="text-2xl font-bold text-slate-900 mb-4">10. Indemnification</h2>
                         
                         <p className="text-slate-600">
-                            You agree to indemnify and hold harmless NGO Connect, its officers, directors, and employees from any claims, 
+                            You agree to indemnify and hold harmless CorpoGN, its officers, directors, and employees from any claims, 
                             damages, or expenses (including legal fees) arising from:
                         </p>
                         <ul className="list-disc pl-6 space-y-2 text-slate-600 mt-3">
@@ -291,7 +291,7 @@ export default function TermsPage() {
                             </p>
                             <p className="text-slate-700 mb-2"><strong>Email:</strong> legal@ngoconnect.in</p>
                             <p className="text-slate-700 mb-2">
-                                <strong>Address:</strong> NGO Connect Technologies Pvt. Ltd.<br />
+                                <strong>Address:</strong> CorpoGN Technologies Pvt. Ltd.<br />
                                 123 Impact Tower, Connaught Place, New Delhi - 110001, India
                             </p>
                             <p className="text-slate-700"><strong>Phone:</strong> +91 12345 67890</p>
@@ -303,7 +303,7 @@ export default function TermsPage() {
                             <CheckCircle2 className="h-6 w-6 text-green-600 flex-shrink-0 mt-0.5" />
                             <div>
                                 <p className="text-slate-700 font-semibold mb-2">
-                                    By clicking "I Accept" or using NGO Connect, you acknowledge that you have read, 
+                                    By clicking "I Accept" or using CorpoGN, you acknowledge that you have read, 
                                     understood, and agree to be bound by these Terms of Service.
                                 </p>
                                 <p className="text-slate-600 text-sm mb-0">

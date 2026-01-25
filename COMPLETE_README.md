@@ -1,4 +1,4 @@
-# 🌐 NGO-CONNECT | Complete Platform Documentation
+# 🌐 CorpoGN | Complete Platform Documentation
 
 > **India's First Real-Time CSR-NGO Matching & Fund Management Platform**
 
@@ -30,7 +30,7 @@
 
 ## 🎯 Overview
 
-NGO-CONNECT is a **dual-sided SaaS platform** that bridges:
+CorpoGN is a **dual-sided SaaS platform** that bridges:
 
 | **Corporates (CSR Teams)** | **NGOs (Non-Profits)** |
 |---------------------------|------------------------|
@@ -102,7 +102,7 @@ npm run dev
 ## 📁 Project Structure
 
 ```
-ngo-connect/
+corpogn/
 ├── app/                          # Next.js App Router
 │   ├── page.js                   # Homepage
 │   ├── layout.js                 # Root layout
@@ -771,4 +771,4 @@ GOOGLE_GEMINI_API_KEY="xxx"
 
 **Built for Social Impact** 🌱
 
-MIT License © 2026 NGO-CONNECT
+MIT License © 2026 CorpoGN

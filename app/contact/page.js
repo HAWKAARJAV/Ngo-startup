@@ -17,7 +17,7 @@ export default function ContactPage() {
                 <div className="container mx-auto px-6 h-16 flex items-center justify-between">
                     <Link href="/" className="flex items-center gap-2">
                         <div className="h-8 w-8 bg-blue-600 rounded-lg flex items-center justify-center text-white font-bold">NC</div>
-                        <span className="text-xl font-bold text-slate-900 tracking-tight">NGO-CONNECT</span>
+                        <span className="text-xl font-bold text-slate-900 tracking-tight">CorpoGN</span>
                     </Link>
                     <Link href="/">
                         <Button variant="ghost">← Back to Home</Button>
@@ -29,7 +29,7 @@ export default function ContactPage() {
                 <div className="text-center mb-12">
                     <h1 className="text-4xl lg:text-5xl font-bold text-slate-900 mb-4">Get in Touch</h1>
                     <p className="text-xl text-slate-600 max-w-2xl mx-auto">
-                        Have questions about NGO Connect? We're here to help you transform your CSR program.
+                        Have questions about CorpoGN? We're here to help you transform your CSR program.
                     </p>
                 </div>
 
@@ -85,9 +85,9 @@ export default function ContactPage() {
 
                                 <div className="space-y-2">
                                     <Label htmlFor="message">Message</Label>
-                                    <Textarea 
-                                        id="message" 
-                                        placeholder="Tell us more about your requirements..." 
+                                    <Textarea
+                                        id="message"
+                                        placeholder="Tell us more about your requirements..."
                                         className="h-32"
                                     />
                                 </div>
@@ -148,7 +148,7 @@ export default function ContactPage() {
                             </CardHeader>
                             <CardContent>
                                 <p className="text-slate-600 leading-relaxed">
-                                    NGO Connect Technologies Pvt. Ltd.<br />
+                                    CorpoGN Technologies Pvt. Ltd.<br />
                                     123, Impact Tower, Connaught Place<br />
                                     New Delhi - 110001<br />
                                     India
@@ -185,7 +185,7 @@ export default function ContactPage() {
                             </CardHeader>
                             <CardContent>
                                 <p className="text-slate-600">
-                                    We aim to respond to all inquiries within 24 hours during business days. 
+                                    We aim to respond to all inquiries within 24 hours during business days.
                                     Enterprise customers receive priority support with 4-hour response times.
                                 </p>
                             </CardContent>
@@ -197,7 +197,7 @@ export default function ContactPage() {
                             </CardHeader>
                             <CardContent>
                                 <p className="text-slate-600">
-                                    Yes! For corporate clients interested in our Enterprise plan, we provide 
+                                    Yes! For corporate clients interested in our Enterprise plan, we provide
                                     personalized on-site demonstrations and implementation support.
                                 </p>
                             </CardContent>
@@ -209,7 +209,7 @@ export default function ContactPage() {
                             </CardHeader>
                             <CardContent>
                                 <p className="text-slate-600">
-                                    Absolutely! Mention your preferred time in the message above, and we'll 
+                                    Absolutely! Mention your preferred time in the message above, and we'll
                                     send you a calendar invite for a video consultation.
                                 </p>
                             </CardContent>
@@ -221,7 +221,7 @@ export default function ContactPage() {
                             </CardHeader>
                             <CardContent>
                                 <p className="text-slate-600">
-                                    Yes, we have comprehensive guides, API documentation, and video tutorials 
+                                    Yes, we have comprehensive guides, API documentation, and video tutorials
                                     available in our Help Center for all registered users.
                                 </p>
                             </CardContent>

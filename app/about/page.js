@@ -13,8 +13,8 @@ export default function AboutPage() {
             <nav className="border-b border-slate-100 bg-white sticky top-0 z-50">
                 <div className="container mx-auto px-6 h-16 flex items-center justify-between">
                     <Link href="/" className="flex items-center gap-2">
-                        <div className="h-8 w-8 bg-blue-600 rounded-lg flex items-center justify-center text-white font-bold">NC</div>
-                        <span className="text-xl font-bold text-slate-900 tracking-tight">NGO-CONNECT</span>
+                        <div className="h-8 w-8 bg-blue-600 rounded-lg flex items-center justify-center text-white font-bold">CG</div>
+                        <span className="text-xl font-bold text-slate-900 tracking-tight">CorpoGN</span>
                     </Link>
                     <Link href="/">
                         <Button variant="ghost">← Back to Home</Button>
@@ -30,7 +30,7 @@ export default function AboutPage() {
                         Reimagining CSR for <span className="text-blue-600">Digital India</span>
                     </h1>
                     <p className="text-xl text-slate-600 leading-relaxed">
-                        NGO Connect is India's first AI-powered platform that brings transparency, accountability, 
+                        CorpoGN is India's first AI-powered platform that brings transparency, accountability,
                         and measurable impact to Corporate Social Responsibility programs.
                     </p>
                 </div>
@@ -88,9 +88,9 @@ export default function AboutPage() {
             <section className="py-20 bg-white">
                 <div className="container mx-auto px-6 max-w-6xl">
                     <div className="text-center mb-16">
-                        <h2 className="text-4xl font-bold text-slate-900 mb-4">Our Solution: The NGO Connect Platform</h2>
+                        <h2 className="text-4xl font-bold text-slate-900 mb-4">Our Solution: The CorpoGN Platform</h2>
                         <p className="text-xl text-slate-600 max-w-3xl mx-auto">
-                            A single platform that automates compliance, enables milestone-based funding, 
+                            A single platform that automates compliance, enables milestone-based funding,
                             and generates board-ready reports — all while ensuring 100% MCA compliance.
                         </p>
                     </div>
@@ -105,7 +105,7 @@ export default function AboutPage() {
                             </CardHeader>
                             <CardContent>
                                 <p className="text-slate-600 leading-relaxed">
-                                    Our system pings the MCA and Income Tax databases every 48 hours. 
+                                    Our system pings the MCA and Income Tax databases every 48 hours.
                                     If an NGO's 12A/80G status changes, we alert both parties instantly and freeze disbursals.
                                 </p>
                             </CardContent>
@@ -120,7 +120,7 @@ export default function AboutPage() {
                             </CardHeader>
                             <CardContent>
                                 <p className="text-slate-600 leading-relaxed">
-                                    Instead of lump-sum transfers, release funds in milestones tied to deliverables. 
+                                    Instead of lump-sum transfers, release funds in milestones tied to deliverables.
                                     Each tranche unlocks only when proof of work is uploaded and verified.
                                 </p>
                             </CardContent>
@@ -135,7 +135,7 @@ export default function AboutPage() {
                             </CardHeader>
                             <CardContent>
                                 <p className="text-slate-600 leading-relaxed">
-                                    Our AI Scout analyzes CSR mandates and finds NGOs with 99% alignment. 
+                                    Our AI Scout analyzes CSR mandates and finds NGOs with 99% alignment.
                                     Natural language queries like "Find education NGOs in rural Maharashtra" work instantly.
                                 </p>
                             </CardContent>
@@ -150,7 +150,7 @@ export default function AboutPage() {
                             </CardHeader>
                             <CardContent>
                                 <p className="text-slate-600 leading-relaxed">
-                                    Generate Form CSR-2 (Annual CSR Report) with one click. 
+                                    Generate Form CSR-2 (Annual CSR Report) with one click.
                                     All data fields are pre-filled and 100% compatible with MCA filings.
                                 </p>
                             </CardContent>
@@ -169,8 +169,8 @@ export default function AboutPage() {
                                 <h2 className="text-3xl font-bold">Our Mission</h2>
                             </div>
                             <p className="text-lg text-slate-300 leading-relaxed">
-                                To democratize CSR funding by creating a transparent, technology-driven marketplace 
-                                where every rupee is tracked, every NGO is verified, and every impact is measured. 
+                                To democratize CSR funding by creating a transparent, technology-driven marketplace
+                                where every rupee is tracked, every NGO is verified, and every impact is measured.
                                 We believe that good intentions deserve good governance.
                             </p>
                         </div>
@@ -181,8 +181,8 @@ export default function AboutPage() {
                                 <h2 className="text-3xl font-bold">Our Vision</h2>
                             </div>
                             <p className="text-lg text-slate-300 leading-relaxed">
-                                To become the default operating system for CSR in India by 2030, powering 
-                                ₹50,000+ Crores in verified impact and connecting 100,000+ NGOs with corporates 
+                                To become the default operating system for CSR in India by 2030, powering
+                                ₹50,000+ Crores in verified impact and connecting 100,000+ NGOs with corporates
                                 through AI-driven precision matching.
                             </p>
                         </div>
@@ -208,7 +208,7 @@ export default function AboutPage() {
                                     <div>
                                         <h3 className="font-bold text-lg text-slate-900 mb-2">Regulatory Push</h3>
                                         <p className="text-slate-600">
-                                            Section 135 of the Companies Act (2013) mandates 2% CSR spending for eligible companies. 
+                                            Section 135 of the Companies Act (2013) mandates 2% CSR spending for eligible companies.
                                             Compliance reporting is now stricter than ever, with penalties for non-compliance.
                                         </p>
                                     </div>
@@ -225,7 +225,7 @@ export default function AboutPage() {
                                     <div>
                                         <h3 className="font-bold text-lg text-slate-900 mb-2">Digital Infrastructure</h3>
                                         <p className="text-slate-600">
-                                            MCA/Income Tax databases are now API-accessible. AI models like Google Gemini 
+                                            MCA/Income Tax databases are now API-accessible. AI models like Google Gemini
                                             enable semantic matching at scale. The technology stack is finally ready.
                                         </p>
                                     </div>
@@ -242,8 +242,8 @@ export default function AboutPage() {
                                     <div>
                                         <h3 className="font-bold text-lg text-slate-900 mb-2">Market Demand</h3>
                                         <p className="text-slate-600">
-                                            CSR teams at India Inc are overwhelmed. They need a system that reduces manual work, 
-                                            ensures compliance, and proves impact to stakeholders — NGO Connect delivers all three.
+                                            CSR teams at India Inc are overwhelmed. They need a system that reduces manual work,
+                                            ensures compliance, and proves impact to stakeholders — CorpoGN delivers all three.
                                         </p>
                                     </div>
                                 </div>
@@ -317,8 +317,8 @@ export default function AboutPage() {
                 <div className="container mx-auto px-6 text-center max-w-3xl">
                     <h2 className="text-4xl font-bold mb-6">Join the CSR Revolution</h2>
                     <p className="text-xl text-blue-100 mb-10">
-                        Whether you're a corporate looking to maximize impact or an NGO seeking verified funding, 
-                        NGO Connect is built for you.
+                        Whether you're a corporate looking to maximize impact or an NGO seeking verified funding,
+                        CorpoGN is built for you.
                     </p>
                     <div className="flex flex-col sm:flex-row gap-4 justify-center">
                         <Link href="/register/ngo">

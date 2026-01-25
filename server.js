@@ -1,6 +1,6 @@
 /**
  * Socket.IO Server for Real-Time Communication
- * NGO-CONNECT Platform
+ * CorpoGN Platform
  * 
  * Handles:
  * - Corporate ↔ NGO Real-time Chat
@@ -367,7 +367,7 @@ app.prepare().then(() => {
     .listen(port, hostname, () => {
       console.log(`
 ╔══════════════════════════════════════════════════════════╗
-║  🚀 NGO-CONNECT Real-Time Server                         ║
+║  🚀 CorpoGN Real-Time Server                         ║
 ║  ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━  ║
 ║  📡 Socket.IO Server: Running                            ║
 ║  🌐 Next.js App: http://${hostname}:${port}            ║

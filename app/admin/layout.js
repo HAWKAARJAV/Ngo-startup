@@ -12,7 +12,7 @@ import {
 import { Button } from '@/components/ui/button';
 
 export const metadata = {
-    title: 'Admin Portal | NGO Connect',
+    title: 'Admin Portal | CorpoGN',
     description: 'Super Administrator Console',
 };
 

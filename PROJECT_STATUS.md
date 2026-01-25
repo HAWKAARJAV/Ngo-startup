@@ -1,4 +1,4 @@
-# NGO Connect - Project Status Report
+# CorpoGN - Project Status Report
 **Date:** January 18, 2026
 **Current Version:** 0.8.0 (Beta / MVP+)
 
