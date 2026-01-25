@@ -2,6 +2,8 @@
 
 **The Operating System for Transparent Corporate Social Responsibility (CSR).**
 
+🌐 **Live Demo**: [https://ngo-connect-production-005a.up.railway.app/](https://ngo-connect-production-005a.up.railway.app/)
+
 NGO Connect is a next-generation platform designed to bridge the gap between Corporate Funders and Verified NGOs in India. It solves the trust deficit by offering automated compliance checks, AI-powered matching, and milestone-based fund disbursal.
 
 ---
