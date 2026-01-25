@@ -7,7 +7,7 @@ WORKDIR /app
 
 # Install dependencies - use npm install to get platform-specific optional deps
 COPY package.json package-lock.json* ./
-RUN npm install --legacy-peer-deps
+RUN npm install --legacy-peer-deps && npm install lightningcss-linux-x64-gnu --save-optional
 
 # Rebuild the source code only when needed
 FROM base AS builder
