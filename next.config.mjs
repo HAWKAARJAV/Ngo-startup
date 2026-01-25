@@ -114,11 +114,6 @@ const nextConfig = {
    * PoweredBy header - hide Next.js version
    */
   poweredByHeader: false,
-
-  /**
-   * Output configuration for standalone deployment
-   */
-  output: 'standalone',
 };
 
 export default nextConfig;
