@@ -2,12 +2,12 @@ FROM node:20-bullseye-slim AS base
 
 # Install dependencies only when needed
 FROM base AS deps
-RUN apt-get update && apt-get install -y ca-certificates && rm -rf /var/lib/apt/lists/*
+RUN apt-get update && apt-get install -y ca-certificates python3 make g++ && rm -rf /var/lib/apt/lists/*
 WORKDIR /app
 
-# Install dependencies deterministically (include optional native bins like lightningcss)
+# Install dependencies - use npm install to get platform-specific optional deps
 COPY package.json package-lock.json* ./
-RUN npm ci --include=optional
+RUN npm install --legacy-peer-deps
 
 # Rebuild the source code only when needed
 FROM base AS builder
