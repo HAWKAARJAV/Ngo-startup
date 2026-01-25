@@ -21,9 +21,22 @@ const port = parseInt(process.env.PORT || '3000', 10);
 const app = next({ dev, hostname, port });
 const handle = app.getRequestHandler();
 
+
 app.prepare().then(() => {
   const httpServer = createServer(async (req, res) => {
     try {
+      // Handle health check directly to avoid double response
+      if (req.url === '/api/health') {
+        res.writeHead(200, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ 
+          status: 'ok', 
+          // These may not be defined yet, so check
+          activeConnections: typeof io !== 'undefined' ? io.sockets.sockets.size : 0,
+          activeUsers: typeof activeUsers !== 'undefined' ? activeUsers.size : 0,
+          activeRooms: typeof roomMembers !== 'undefined' ? roomMembers.size : 0
+        }));
+        return;
+      }
       const parsedUrl = parse(req.url, true);
       await handle(req, res, parsedUrl);
     } catch (err) {
@@ -345,18 +358,6 @@ app.prepare().then(() => {
     });
   });
 
-  // Health check endpoint for monitoring
-  httpServer.on('request', (req, res) => {
-    if (req.url === '/api/health') {
-      res.writeHead(200, { 'Content-Type': 'application/json' });
-      res.end(JSON.stringify({ 
-        status: 'ok', 
-        activeConnections: io.sockets.sockets.size,
-        activeUsers: activeUsers.size,
-        activeRooms: roomMembers.size
-      }));
-    }
-  });
 
   httpServer
     .once('error', (err) => {
