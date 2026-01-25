@@ -72,15 +72,17 @@ model NGO {
 }
 
 model Corporate {
-  id           String     @id @default(uuid())
-  userId       String     @unique
-  companyName  String
-  industry     String
-  csrBudget    Float
-  mandateAreas String
+  id          String   @id @default(uuid())
+  ngoId       String
+  projectId   String?  // Optional: not all logs are project-specific
+  docType     String   // "12A", "80G", "UC", "PROJECT_EVIDENCE"
+  action      String   // "UPLOAD", "VERIFY", "REJECT", "EXPIRE"
+  actorId     String   // Who did it? (User ID)
+  timestamp   DateTime @default(now())
+  metadata    String?  // JSON: { "oldVal": "...", "newVal": "...", "reason": "..." }
   
-  // Admin Controls
-  systemStatus String   @default("ACTIVE")
+  ngo         NGO      @relation(fields: [ngoId], references: [id])
+  project     Project? @relation(fields: [projectId], references: [id])
   adminNotes   String?
 
   user         User       @relation(fields: [userId], references: [id])
@@ -120,6 +122,8 @@ model Project {
   ngo          NGO        @relation(fields: [ngoId], references: [id])
   tranches     Tranche[]
   complianceDocs ProjectComplianceDoc[]
+  complianceLogs ComplianceLog[]
+  complianceLogs ComplianceLog[]
 }
 
 model Tranche {
@@ -166,6 +170,7 @@ model ComplianceDoc {
 model ComplianceLog {
   id          String   @id @default(uuid())
   ngoId       String
+  projectId   String?  // Optional: not all logs are project-specific
   docType     String   // "12A", "80G", "UC", "PROJECT_EVIDENCE"
   action      String   // "UPLOAD", "VERIFY", "REJECT", "EXPIRE"
   actorId     String   // Who did it? (User ID)
@@ -173,6 +178,7 @@ model ComplianceLog {
   metadata    String?  // JSON: { "oldVal": "...", "newVal": "...", "reason": "..." }
   
   ngo         NGO      @relation(fields: [ngoId], references: [id])
+  project     Project? @relation(fields: [projectId], references: [id])
 }
 
 model ProjectComplianceDoc {
