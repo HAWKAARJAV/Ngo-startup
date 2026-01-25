@@ -1,7 +1,6 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  // Required for Docker deployment - creates minimal standalone output
-  output: 'standalone',
+  // Note: Not using standalone output due to custom server.js with Socket.IO
 
   /**
    * Security Headers Configuration
