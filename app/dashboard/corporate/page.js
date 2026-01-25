@@ -7,6 +7,9 @@ import { Textarea } from "@/components/ui/textarea";
 import { Building2, Save } from "lucide-react";
 import prisma from "@/lib/prisma";
 
+// Prevent static prerendering - requires database at runtime
+export const dynamic = 'force-dynamic';
+
 export default async function CorporateProfilePage() {
     // Mock user fetching
     const userEmail = 'csr@techgiant.com';

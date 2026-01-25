@@ -2,6 +2,9 @@ import ProjectWorkbench from "./workbench";
 import prisma from "@/lib/prisma";
 import { notFound } from "next/navigation";
 
+// Prevent static prerendering - requires database at runtime
+export const dynamic = 'force-dynamic';
+
 export default async function ProjectWorkbenchPage(props) {
     const params = await props.params;
     const { id } = params;

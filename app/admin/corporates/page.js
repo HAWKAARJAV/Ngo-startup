@@ -1,6 +1,9 @@
 import prisma from "@/lib/prisma";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+
+// Prevent static prerendering - requires database at runtime
+export const dynamic = 'force-dynamic';
 import {
     Table,
     TableBody,

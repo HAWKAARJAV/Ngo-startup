@@ -1,6 +1,9 @@
 import prisma from "@/lib/prisma";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+
+// Prevent static prerendering - requires database at runtime
+export const dynamic = 'force-dynamic';
 import {
     Table,
     TableBody,

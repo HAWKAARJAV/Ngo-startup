@@ -1,6 +1,9 @@
 import prisma from "@/lib/prisma";
 import { cookies } from "next/headers";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+
+// Prevent static prerendering - requires database at runtime
+export const dynamic = 'force-dynamic';
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import { ArrowUpCircle, AlertCircle, Info } from "lucide-react";

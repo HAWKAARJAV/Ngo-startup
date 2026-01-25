@@ -1,6 +1,9 @@
 import prisma from "@/lib/prisma";
 import { cookies } from "next/headers";
 import { Button } from "@/components/ui/button";
+
+// Prevent static prerendering - requires database at runtime
+export const dynamic = 'force-dynamic';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Upload, FileCheck, AlertTriangle, Clock, History, Bell, Building2, ArrowRight } from "lucide-react";

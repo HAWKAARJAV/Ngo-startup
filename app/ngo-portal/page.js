@@ -1,6 +1,9 @@
 import prisma from "@/lib/prisma";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+
+// Prevent static prerendering - requires database at runtime
+export const dynamic = 'force-dynamic';
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { ShieldCheck, AlertTriangle, AlertCircle, ArrowRight, Wallet, Calendar, FileText, MessageCircle, TrendingUp, DollarSign, Upload, Building2 } from "lucide-react";

@@ -11,6 +11,9 @@ import { Badge } from "@/components/ui/badge";
 import { Code, Search } from "lucide-react";
 import { Input } from "@/components/ui/input";
 
+// Prevent static prerendering - requires database at runtime
+export const dynamic = 'force-dynamic';
+
 export default async function AdminAuditLogPage() {
     const logs = await prisma.adminAuditLog.findMany({
         include: { admin: true },
