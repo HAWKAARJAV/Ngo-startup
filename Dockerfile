@@ -5,9 +5,9 @@ FROM base AS deps
 RUN apk add --no-cache libc6-compat
 WORKDIR /app
 
-# Install dependencies
+# Install dependencies deterministically
 COPY package.json package-lock.json* ./
-RUN npm install --frozen-lockfile || npm install
+RUN npm ci
 
 # Rebuild the source code only when needed
 FROM base AS builder
