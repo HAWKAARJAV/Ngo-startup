@@ -5,9 +5,9 @@ FROM base AS deps
 RUN apt-get update && apt-get install -y ca-certificates python3 make g++ && rm -rf /var/lib/apt/lists/*
 WORKDIR /app
 
-# Install dependencies - use npm install to get platform-specific optional deps
-COPY package.json package-lock.json* ./
-RUN npm install --legacy-peer-deps && npm install lightningcss-linux-x64-gnu --save-optional
+# Install dependencies - delete lockfile to get platform-specific native binaries
+COPY package.json ./
+RUN rm -f package-lock.json && npm install --legacy-peer-deps
 
 # Rebuild the source code only when needed
 FROM base AS builder
